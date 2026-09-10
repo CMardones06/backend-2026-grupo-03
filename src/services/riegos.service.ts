@@ -2,8 +2,8 @@ import { Injectable, UnprocessableEntityException, NotFoundException } from '@ne
 
 @Injectable()
 export class RiegosService {
-  private riegos = [];
-  private plantas = [];
+  private riegos: any[] = [];
+  private plantas: any[] = [];
 
   crearRiego(datos: any) {
     const fechaActual = new Date();
@@ -12,22 +12,22 @@ export class RiegosService {
     if (fechaIngresada > fechaActual) {
       throw new UnprocessableEntityException({
         code: 'FECHA_INVALIDA',
-        message: 'La fecha del riego no puede ser futura'
+        message: 'La fecha del riego no puede ser futura',
       });
     }
 
-    const planta = this.plantas.find(p => p.id === datos.planta_id);
+    const planta = this.plantas.find((p: any) => p.id === datos.planta_id);
     if (!planta) {
       throw new NotFoundException({
         code: 'PLANTA_NO_ENCONTRADA',
-        message: 'No existe la planta especificada'
+        message: 'No existe la planta especificada',
       });
     }
 
     if (planta.estado_salud === 'Muerta') {
       throw new UnprocessableEntityException({
         code: 'PLANTA_MUERTA',
-        message: 'No se puede registrar riego a una planta muerta'
+        message: 'No se puede registrar riego a una planta muerta',
       });
     }
 

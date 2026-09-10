@@ -2,16 +2,16 @@ import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 
 @Injectable()
 export class PlantasService {
-  private plantas = [];
-  private especies = [];
+  private plantas: any[] = [];
+  private especies: any[] = [];
 
   crearPlanta(datos: any) {
-    const especie = this.especies.find(e => e.id === datos.especie_id);
+    const especie = this.especies.find((e: any) => e.id === datos.especie_id);
 
     if (!especie) {
       throw new UnprocessableEntityException({
         code: 'ESPECIE_REQUERIDA',
-        message: 'Debe existir la especie para crear la planta'
+        message: 'Debe existir la especie para crear la planta',
       });
     }
 
