@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query, HttpCode, HttpStatus } from '@nestjs/common';
 import { PlantasService } from '../services/plantas.service';
+import { CrearPlantaDto } from '../dto/crear-planta.dto';
 
 @Controller('plantas')
 export class PlantasController {
@@ -7,7 +8,7 @@ export class PlantasController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  crear(@Body() datos: any) {
+  crear(@Body() datos: CrearPlantaDto) {
     return this.plantasService.crearPlanta(datos);
   }
 
@@ -41,7 +42,7 @@ export class PlantasController {
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
-  actualizar(@Param('id') id: string, @Body() datos: any) {
+  actualizar(@Param('id') id: string, @Body() datos: CrearPlantaDto) {
     return { id: Number(id), ...datos };
   }
 

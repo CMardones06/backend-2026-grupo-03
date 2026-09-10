@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Param, Query, HttpCode, HttpStatus } from '@nestjs/common';
 import { RiegosService } from '../services/riegos.service';
+import { CrearRiegoDto } from '../dto/crear-riego.dto';
 
 @Controller('riegos')
 export class RiegosController {
@@ -7,7 +8,7 @@ export class RiegosController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  crear(@Body() datos: any) {
+  crear(@Body() datos: CrearRiegoDto) {
     return this.riegosService.crearRiego(datos);
   }
 
