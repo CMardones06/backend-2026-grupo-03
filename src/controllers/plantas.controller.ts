@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { PlantasService } from '../services/plantas.service';
 import { CrearPlantaDto } from '../dto/crear-planta.dto';
 
@@ -21,34 +32,31 @@ export class PlantasController {
     @Query('pagina') pagina: string = '1',
     @Query('limite') limite: string = '10',
   ) {
-    return {
-      data: [],
-      meta: {
-        total: 0,
-        pagina: Number(pagina),
-        limite: Number(limite),
-        total_paginas: 0,
-        filtros: { estado_salud: estadoSalud || null },
-        orden: { campo: ordenarPor, direccion },
-      },
-    };
+    return this.plantasService.obtenerTodas(
+      estadoSalud,
+      ordenarPor,
+      direccion,
+      Number(pagina),
+      Number(limite),
+    );
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   obtenerPorId(@Param('id') id: string) {
-    return { id: Number(id), apodo: 'Margarita', estado_salud: 'Optimo' };
+    return this.plantasService.obtenerPorId(Number(id));
   }
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
   actualizar(@Param('id') id: string, @Body() datos: CrearPlantaDto) {
-    return { id: Number(id), ...datos };
+    return this.plantasService.actualizar(Number(id), datos);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   eliminar(@Param('id') id: string) {
+    this.plantasService.eliminar(Number(id));
     return;
   }
 }
