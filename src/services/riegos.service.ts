@@ -1,38 +1,39 @@
-import { Injectable, UnprocessableEntityException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
+import { RegistroRiegoRepository } from '../repositories/registro-riego.repository';
+import { PlantasService } from './plantas.service';
 
 @Injectable()
 export class RiegosService {
-  private riegos: any[] = [];
-  private plantas: any[] = [];
+  constructor(
+    private readonly riegoRepository: RegistroRiegoRepository,
+    private readonly plantasService: PlantasService, // Hallazgo #2: Conectado a PlantasService
+  ) {}
 
   crearRiego(datos: any) {
-    const fechaActual = new Date();
-    const fechaIngresada = new Date(datos.fecha_riego);
-
-    if (fechaIngresada > fechaActual) {
-      throw new UnprocessableEntityException({
+    // Validar fecha futura
+    const fechaRiego = new Date(datos.fecha_riego);
+    if (fechaRiego > new Date()) {
+      throw new BadRequestException({ // Hallazgo #7: 400
         code: 'FECHA_INVALIDA',
-        message: 'La fecha del riego no puede ser futura',
+        message: 'La fecha de riego no puede ser futura',
       });
     }
 
-    const planta = this.plantas.find((p: any) => p.id === datos.planta_id);
-    if (!planta) {
-      throw new NotFoundException({
-        code: 'PLANTA_NO_ENCONTRADA',
-        message: 'No existe la planta especificada',
-      });
-    }
+    // Hallazgo #2: Obtener la planta real
+    const planta = this.plantasService.obtenerPorId(datos.planta_id);
 
+    // Hallazgo #10: Compara 'Muerta'
     if (planta.estado_salud === 'Muerta') {
-      throw new UnprocessableEntityException({
+      throw new BadRequestException({ // Hallazgo #7: 400
         code: 'PLANTA_MUERTA',
-        message: 'No se puede registrar riego a una planta muerta',
+        message: 'No se puede registrar riegos para una planta muerta',
       });
     }
 
-    const nuevoRiego = { id: this.riegos.length + 1, ...datos };
-    this.riegos.push(nuevoRiego);
-    return nuevoRiego;
+    return this.riegoRepository.save(datos);
+  }
+
+  obtenerTodos() {
+    return this.riegoRepository.findAll(); // Hallazgo #6: Retorna datos reales
   }
 }
