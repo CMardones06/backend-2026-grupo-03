@@ -7,20 +7,9 @@ import { PlantasService } from './services/plantas.service';
 import { EspeciesService } from './services/especies.service';
 import { RiegosService } from './services/riegos.service';
 
-import { PlantaRepository } from './repositories/planta.repository';
-import { EspecieRepository } from './repositories/especie.repository';
-import { RegistroRiegoRepository } from './repositories/registro-riego.repository';
-
 @Module({
   imports: [],
   controllers: [PlantasController, EspeciesController, RiegosController],
-  providers: [
-    PlantasService,
-    EspeciesService,
-    RiegosService,
-    PlantaRepository,
-    EspecieRepository,
-    RegistroRiegoRepository,
-  ],
+  providers: [PlantasService, EspeciesService, RiegosService],
 })
 export class AppModule {}
