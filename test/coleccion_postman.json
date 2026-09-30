@@ -1,0 +1,130 @@
+{
+	"info": {
+		"_postman_id": "b6a8a183-4a12-4c22-b05b-999999999999",
+		"name": "API Alertas y Cronogramas de Riego - Pruebas QA",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "01_CRUD_Plantas",
+			"item": [
+				{
+					"name": "01 - Crear Planta Exitoso (201)",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre_comun\": \"Helecho Real\",\n  \"ubicacion\": \"Terraza Norte\",\n  \"estado_salud\": \"SANA\",\n  \"especie_id\": 1\n}"
+						},
+						"url": {"raw": "{{baseUrl}}/plantas", "host": ["{{baseUrl}}"], "path": ["plantas"]}
+					}
+				},
+				{
+					"name": "02 - Obtener Planta por ID Exitoso (200)",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "{{baseUrl}}/plantas/1", "host": ["{{baseUrl}}"], "path": ["plantas", "1"]}
+					}
+				},
+				{
+					"name": "03 - Actualizar Planta Exitoso (200)",
+					"request": {
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre_comun\": \"Helecho Real Modificado\",\n  \"ubicacion\": \"Salón Principal\",\n  \"estado_salud\": \"ENFERMA\",\n  \"especie_id\": 1\n}"
+						},
+						"url": {"raw": "{{baseUrl}}/plantas/1", "host": ["{{baseUrl}}"], "path": ["plantas", "1"]}
+					}
+				},
+				{
+					"name": "04 - Eliminar Planta Exitoso (204)",
+					"request": {
+						"method": "DELETE",
+						"url": {"raw": "{{baseUrl}}/plantas/1", "host": ["{{baseUrl}}"], "path": ["plantas", "1"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "02_Paginacion_Filtro_Orden",
+			"item": [
+				{
+					"name": "GET - Plantas Paginadas, Filtradas y Ordenadas (200)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/plantas?estado_salud=SANA&ordenar_por=nombre_comun&direccion=asc&pagina=1&limite=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["plantas"],
+							"query": [
+								{"key": "estado_salud", "value": "SANA"},
+								{"key": "ordenar_por", "value": "nombre_comun"},
+								{"key": "direccion", "value": "asc"},
+								{"key": "pagina", "value": "1"},
+								{"key": "limite", "value": "10"}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "03_Casos_de_Error_y_Validaciones",
+			"item": [
+				{
+					"name": "Error 422 - Validación de Formato Email",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Juan Pérez\",\n  \"email\": \"email-invalido\",\n  \"rol\": \"JARDINERO\"\n}"
+						},
+						"url": {"raw": "{{baseUrl}}/usuarios", "host": ["{{baseUrl}}"], "path": ["usuarios"]}
+					}
+				},
+				{
+					"name": "Error 400 - Regla Negocio: Riego con Fecha Futura",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"planta_id\": 1,\n  \"fecha_riego\": \"2030-01-01T10:00:00Z\",\n  \"cantidad_ml\": 250\n}"
+						},
+						"url": {"raw": "{{baseUrl}}/registros-riego", "host": ["{{baseUrl}}"], "path": ["registros-riego"]}
+					}
+				},
+				{
+					"name": "Error 400 - Regla Negocio: Riego a Planta Muerta",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"planta_id\": 2,\n  \"fecha_riego\": \"2026-09-01T10:00:00Z\",\n  \"cantidad_ml\": 200\n}"
+						},
+						"url": {"raw": "{{baseUrl}}/registros-riego", "host": ["{{baseUrl}}"], "path": ["registros-riego"]}
+					}
+				},
+				{
+					"name": "Error 404 - Planta No Encontrada",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "{{baseUrl}}/plantas/9999", "host": ["{{baseUrl}}"], "path": ["plantas", "9999"]}
+					}
+				}
+			]
+		}
+	]
+}
