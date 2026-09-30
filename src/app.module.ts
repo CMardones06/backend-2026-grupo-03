@@ -1,20 +1,26 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { PlantasController } from './controllers/plantas.controller';
 import { EspeciesController } from './controllers/especies.controller';
 import { RiegosController } from './controllers/riegos.controller';
+
 import { PlantasService } from './services/plantas.service';
+import { EspeciesService } from './services/especies.service';
 import { RiegosService } from './services/riegos.service';
+
+import { PlantaRepository } from './repositories/planta.repository';
+import { EspecieRepository } from './repositories/especie.repository';
+import { RegistroRiegoRepository } from './repositories/registro-riego.repository';
 
 @Module({
   imports: [],
-  controllers: [
-    AppController,
-    PlantasController,
-    EspeciesController,
-    RiegosController,
+  controllers: [PlantasController, EspeciesController, RiegosController],
+  providers: [
+    PlantasService,
+    EspeciesService,
+    RiegosService,
+    PlantaRepository,
+    EspecieRepository,
+    RegistroRiegoRepository,
   ],
-  providers: [AppService, PlantasService, RiegosService],
 })
 export class AppModule {}

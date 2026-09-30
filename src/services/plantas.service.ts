@@ -1,20 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { PlantaRepository } from '../repositories/planta.repository';
+import { EspeciesService } from './especies.service';
 
 @Injectable()
 export class PlantasService {
-  private plantas: any[] = [];
+  constructor(
+    private readonly plantaRepository: PlantaRepository,
+    private readonly especiesService: EspeciesService, // Hallazgo #4
+  ) {}
 
   crearPlanta(datos: any) {
-    const nuevaPlanta = {
-      id:
-        this.plantas.length > 0
-          ? Math.max(...this.plantas.map((p) => p.id)) + 1
-          : 1,
-      ...datos,
-    };
+    // Hallazgo #4: Validación de especie inexistente
+    if (!this.especiesService.existe(datos.especie_id)) {
+      throw new BadRequestException({ // Hallazgo #7: 400 para reglas de negocio
+        code: 'ESPECIE_NO_ENCONTRADA',
+        message: `No existe una especie con id ${datos.especie_id}`,
+      });
+    }
 
-    this.plantas.push(nuevaPlanta);
-    return nuevaPlanta;
+    return this.plantaRepository.save(datos);
   }
 
   obtenerTodas(
@@ -24,68 +28,130 @@ export class PlantasService {
     pagina: number = 1,
     limite: number = 10,
   ) {
-    let resultado = [...this.plantas];
-
-    // 1. Filtrado
-    if (estadoSalud) {
-      resultado = resultado.filter(
-        (planta) => planta.estado_salud === estadoSalud,
-      );
+    // Hallazgo #9: Validaciones de query params
+    if (!['asc', 'desc'].includes(direccion)) {
+      throw new BadRequestException({ code: 'DIRECCION_INVALIDA', message: 'direccion debe ser asc o desc' });
+    }
+    if (limite < 1 || limite > 100) {
+      throw new BadRequestException({ code: 'LIMITE_INVALIDO', message: 'limite debe estar entre 1 y 100' });
+    }
+    if (pagina < 1) {
+      throw new BadRequestException({ code: 'PAGINA_INVALIDA', message: 'pagina debe ser mayor o igual a 1' });
     }
 
-    // 2. Ordenamiento
+    let resultado = this.plantaRepository.findAll();
+
+    if (estadoSalud) {
+      resultado = resultado.filter((p) => p.estado_salud === estadoSalud);
+    }
+
     resultado.sort((a, b) => {
       if (a[ordenarPor] < b[ordenarPor]) return direccion === 'asc' ? -1 : 1;
       if (a[ordenarPor] > b[ordenarPor]) return direccion === 'asc' ? 1 : -1;
       return 0;
     });
 
-    // 3. Paginación
     const total = resultado.length;
-    const totalPaginas = Math.ceil(total / limite);
+    const totalPaginas = Math.ceil(total / limite) || 1;
     const startIndex = (pagina - 1) * limite;
-    const endIndex = startIndex + limite;
+    const datosPaginados = resultado.slice(startIndex, startIndex + limite);
 
-    const datosPaginados = resultado.slice(startIndex, endIndex);
-
-    // 4. Retorno de estructura con metadatos
+    // Hallazgo #8: Estructura exacta solicitada por la pauta
     return {
-      data: datosPaginados,
-      meta: {
-        total: total,
-        pagina: pagina,
-        limite: limite,
-        total_paginas: totalPaginas,
-        filtros: { estado_salud: estadoSalud || null },
-        orden: { campo: ordenarPor, direccion },
-      },
+      items: datosPaginados,
+      total,
+      pagina,
+      limite,
+      total_paginas: totalPaginas,
     };
   }
 
   obtenerPorId(id: number) {
-    const planta = this.plantas.find((p) => Number(p.id) === Number(id));
+    const planta = this.plantaRepository.findById(id);
     if (!planta) {
-      throw new NotFoundException(`Planta con ID ${id} no encontrada`);
+      throw new NotFoundException({
+        code: 'PLANTA_NO_ENCONTRADA',
+        message: `La planta con ID ${id} no existe`,
+      });
     }
     return planta;
   }
+}import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { PlantaRepository } from '../repositories/planta.repository';
+import { EspeciesService } from './especies.service';
 
-  actualizar(id: number, datos: any) {
-    const index = this.plantas.findIndex((p) => Number(p.id) === Number(id));
-    if (index === -1) {
-      throw new NotFoundException(`Planta con ID ${id} no encontrada`);
+@Injectable()
+export class PlantasService {
+  constructor(
+    private readonly plantaRepository: PlantaRepository,
+    private readonly especiesService: EspeciesService, // Hallazgo #4
+  ) {}
+
+  crearPlanta(datos: any) {
+    // Hallazgo #4: Validación de especie inexistente
+    if (!this.especiesService.existe(datos.especie_id)) {
+      throw new BadRequestException({ // Hallazgo #7: 400 para reglas de negocio
+        code: 'ESPECIE_NO_ENCONTRADA',
+        message: `No existe una especie con id ${datos.especie_id}`,
+      });
     }
 
-    this.plantas[index] = { ...this.plantas[index], ...datos };
-    return this.plantas[index];
+    return this.plantaRepository.save(datos);
   }
 
-  eliminar(id: number) {
-    const index = this.plantas.findIndex((p) => Number(p.id) === Number(id));
-    if (index === -1) {
-      throw new NotFoundException(`Planta con ID ${id} no encontrada`);
+  obtenerTodas(
+    estadoSalud?: string,
+    ordenarPor: string = 'id',
+    direccion: string = 'asc',
+    pagina: number = 1,
+    limite: number = 10,
+  ) {
+    // Hallazgo #9: Validaciones de query params
+    if (!['asc', 'desc'].includes(direccion)) {
+      throw new BadRequestException({ code: 'DIRECCION_INVALIDA', message: 'direccion debe ser asc o desc' });
+    }
+    if (limite < 1 || limite > 100) {
+      throw new BadRequestException({ code: 'LIMITE_INVALIDO', message: 'limite debe estar entre 1 y 100' });
+    }
+    if (pagina < 1) {
+      throw new BadRequestException({ code: 'PAGINA_INVALIDA', message: 'pagina debe ser mayor o igual a 1' });
     }
 
-    this.plantas.splice(index, 1);
+    let resultado = this.plantaRepository.findAll();
+
+    if (estadoSalud) {
+      resultado = resultado.filter((p) => p.estado_salud === estadoSalud);
+    }
+
+    resultado.sort((a, b) => {
+      if (a[ordenarPor] < b[ordenarPor]) return direccion === 'asc' ? -1 : 1;
+      if (a[ordenarPor] > b[ordenarPor]) return direccion === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    const total = resultado.length;
+    const totalPaginas = Math.ceil(total / limite) || 1;
+    const startIndex = (pagina - 1) * limite;
+    const datosPaginados = resultado.slice(startIndex, startIndex + limite);
+
+    // Hallazgo #8: Estructura exacta solicitada por la pauta
+    return {
+      items: datosPaginados,
+      total,
+      pagina,
+      limite,
+      total_paginas: totalPaginas,
+    };
+  }
+
+  obtenerPorId(id: number) {
+    const planta = this.plantaRepository.findById(id);
+    if (!planta) {
+      throw new NotFoundException({
+        code: 'PLANTA_NO_ENCONTRADA',
+        message: `La planta con ID ${id} no existe`,
+      });
+    }
+    return planta;
   }
 }
