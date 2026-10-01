@@ -1,100 +1,152 @@
 {
-  "info": {
-    "name": "API Riego QA",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "item": [
-    {
-      "name": "01 - Crear Especie",
-      "request": {
-        "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"nombre\": \"Margarita\",\n  \"descripcion\": \"Planta herbacea\"\n}"
-        },
-        "url": {
-          "raw": "http://localhost:3000/especies",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "3000",
-          "path": ["especies"]
-        }
-      }
-    },
-    {
-      "name": "02 - Crear Planta",
-      "request": {
-        "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"apodo\": \"Margarita\",\n  \"especie_id\": 1,\n  \"estado_salud\": \"Optimo\"\n}"
-        },
-        "url": {
-          "raw": "http://localhost:3000/plantas",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "3000",
-          "path": ["plantas"]
-        }
-      }
-    },
-    {
-      "name": "03 - Registrar Riego",
-      "request": {
-        "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"planta_id\": 1,\n  \"fecha_riego\": \"2026-09-30T10:00:00.000Z\",\n  \"cantidad_ml\": 250\n}"
-        },
-        "url": {
-          "raw": "http://localhost:3000/riegos",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "3000",
-          "path": ["riegos"]
-        }
-      }
-    },
-    {
-      "name": "04 - Registrar Riego Error Fecha",
-      "request": {
-        "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"planta_id\": 1,\n  \"fecha_riego\": \"2026-10-05T10:00:00.000Z\",\n  \"cantidad_ml\": 250\n}"
-        },
-        "url": {
-          "raw": "http://localhost:3000/riegos",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "3000",
-          "path": ["riegos"]
-        }
-      }
-    },
-    {
-      "name": "05 - Listar Plantas Filtrado",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:3000/plantas?page=1&limit=5&sortBy=apodo&order=ASC",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "3000",
-          "path": ["plantas"],
-          "query": [
-            { "key": "page", "value": "1" },
-            { "key": "limit", "value": "5" },
-            { "key": "sortBy", "value": "apodo" },
-            { "key": "order", "value": "ASC" }
-          ]
-        }
-      }
-    }
-  ]
+	"info": {
+		"name": "API Riego QA",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "01 - Crear Especie",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"nombre\": \"Margarita\",\n  \"descripcion\": \"Planta herbacea\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/especies",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"especies"
+					]
+				}
+			}
+		},
+		{
+			"name": "02 - Crear Planta",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"apodo\": \"Margarita\",\n  \"especie_id\": 1,\n  \"estado_salud\": \"Optimo\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/plantas",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"plantas"
+					]
+				}
+			}
+		},
+		{
+			"name": "03 - Registrar Riego",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"planta_id\": 1,\n  \"fecha_riego\": \"2026-09-30T10:00:00.000Z\",\n  \"cantidad_ml\": 250\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/riegos",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"riegos"
+					]
+				}
+			}
+		},
+		{
+			"name": "04 - Registrar Riego Error Fecha",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"planta_id\": 1,\n  \"fecha_riego\": \"2026-10-05T10:00:00.000Z\",\n  \"cantidad_ml\": 250\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/riegos",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"riegos"
+					]
+				}
+			}
+		},
+		{
+			"name": "05 - Listar Plantas Filtrado",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/plantas?page=1&limit=5&sortBy=apodo&order=ASC",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"plantas"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "limit",
+							"value": "5"
+						},
+						{
+							"key": "sortBy",
+							"value": "apodo"
+						},
+						{
+							"key": "order",
+							"value": "ASC"
+						}
+					]
+				}
+			}
+		}
+	]
 }
