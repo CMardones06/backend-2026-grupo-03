@@ -1,20 +1,24 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { EspecieRepository } from '../repositories/especie.repository';
 
 @Injectable()
 export class EspeciesService {
-  constructor(private readonly especieRepository: EspecieRepository) {}
+  private especies: any[] = [];
 
   crear(datos: any) {
-    return this.especieRepository.save(datos);
+    const nuevaEspecie = {
+      id: this.especies.length > 0 ? Math.max(...this.especies.map((e) => e.id)) + 1 : 1,
+      ...datos,
+    };
+    this.especies.push(nuevaEspecie);
+    return nuevaEspecie;
   }
 
   obtenerTodas() {
-    return this.especieRepository.findAll();
+    return this.especies;
   }
 
   obtenerPorId(id: number) {
-    const especie = this.especieRepository.findById(id);
+    const especie = this.especies.find((e) => Number(e.id) === Number(id));
     if (!especie) {
       throw new NotFoundException({
         code: 'ESPECIE_NO_ENCONTRADA',
@@ -25,6 +29,6 @@ export class EspeciesService {
   }
 
   existe(id: number): boolean {
-    return !!this.especieRepository.findById(id);
+    return this.especies.some((e) => Number(e.id) === Number(id));
   }
 }
