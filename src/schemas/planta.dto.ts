@@ -1,4 +1,4 @@
-import { IsString, IsEnum, IsDateString } from 'class-validator';
+import { IsString, IsEnum, IsDateString, IsNotEmpty } from 'class-validator';
 
 export enum EstadoSalud {
   OPTIMO = 'Optimo',
@@ -9,12 +9,12 @@ export enum EstadoSalud {
 
 export class CreatePlantaDto {
   @IsString()
+  @IsNotEmpty()
   apodo: string;
 
   @IsDateString()
   fecha_adquisicion: Date;
 
-  //Validación por valores permitidos Enum
   @IsEnum(EstadoSalud, { message: 'El estado de salud no es válido' })
   estado_salud: EstadoSalud;
 
