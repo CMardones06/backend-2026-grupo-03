@@ -21,10 +21,12 @@ import { UsuarioRepository } from './repositories/usuario.repository';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      type: 'better-sqlite3',
+      type: 'sqlite',
       database: process.env.DB_DATABASE || 'database.sqlite',
       entities: [Especie, Planta, RegistroRiego, Usuario],
-      synchronize: true,
+      migrations: ['dist/migrations/*.js'],
+      migrationsRun: true,
+      synchronize: false,
     }),
     TypeOrmModule.forFeature([
       Especie,
