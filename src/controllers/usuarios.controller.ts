@@ -9,9 +9,11 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { UsuariosService } from '../services/usuarios.service';
 import { CrearUsuarioDto } from '../dto/crear-usuario.dto';
+import { ConsultarUsuariosDto } from '../dto/consultar-usuarios.dto';
 
 @Controller('usuarios')
 export class UsuariosController {
@@ -25,10 +27,10 @@ export class UsuariosController {
     return this.usuariosService.crear(datos);
   }
 
-  @Get()
-  obtenerTodos() {
-    return this.usuariosService.obtenerTodos();
-  }
+    @Get()
+    obtenerTodos(@Query() consulta: ConsultarUsuariosDto) {
+    return this.usuariosService.obtenerTodos(consulta);
+    }
 
   @Get(':id')
   obtenerPorId(

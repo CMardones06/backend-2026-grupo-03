@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { UsuarioRepository } from '../repositories/usuario.repository';
 import { CrearUsuarioDto } from '../dto/crear-usuario.dto';
+import { ConsultarUsuariosDto } from '../dto/consultar-usuarios.dto';
 
 @Injectable()
 export class UsuariosService {
@@ -12,9 +13,18 @@ export class UsuariosService {
     private readonly usuarioRepository: UsuarioRepository,
   ) {}
 
-  obtenerTodos() {
-    return this.usuarioRepository.findAll();
-  }
+    async obtenerTodos(consulta: ConsultarUsuariosDto) {
+    const [items, total] =
+        await this.usuarioRepository.findAll(consulta);
+
+    return {
+        items,
+        total,
+        pagina: consulta.pagina,
+        limite: consulta.limite,
+        total_paginas: Math.ceil(total / consulta.limite),
+    };
+    }
 
   async obtenerPorId(id: number) {
     const usuario = await this.usuarioRepository.findById(id);
