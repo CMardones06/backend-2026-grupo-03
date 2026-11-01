@@ -5,6 +5,11 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { HttpStatus, ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  
+  // Habilita las validaciones globales usando los DTOs
+  app.useGlobalPipes(new ValidationPipe({ 
+    whitelist: true, 
+    forbidNonWhitelisted: true }));
 
   const config = new DocumentBuilder()
     .setTitle('Alertas y Cronograma de Riego')
