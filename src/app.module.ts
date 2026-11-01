@@ -1,15 +1,20 @@
 import { Module } from '@nestjs/common';
-import { PlantasController } from './controllers/plantas.controller';
-import { EspeciesController } from './controllers/especies.controller';
-import { RiegosController } from './controllers/riegos.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { PlantasService } from './services/plantas.service';
-import { EspeciesService } from './services/especies.service';
-import { RiegosService } from './services/riegos.service';
+import { Especie } from './domain/entities/especie.entity';
+import { Planta } from './domain/entities/planta.entity';
+import { RegistroRiego } from './domain/entities/registro-riego.entity';
+import { Usuario } from './domain/entities/usuario.entity';
 
 @Module({
-  imports: [],
-  controllers: [PlantasController, EspeciesController, RiegosController],
-  providers: [PlantasService, EspeciesService, RiegosService],
+  imports: [
+    TypeOrmModule.forRoot({
+      type: 'better-sqlite3',
+      database: process.env.DB_DATABASE || 'database.sqlite',
+      entities: [Especie, Planta, RegistroRiego, Usuario],
+      synchronize: true,
+    }),
+    TypeOrmModule.forFeature([Especie, Planta, RegistroRiego, Usuario]),
+  ],
 })
 export class AppModule {}

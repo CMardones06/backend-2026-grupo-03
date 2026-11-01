@@ -1,16 +1,16 @@
-import { IsNotEmpty, IsNumber, IsPositive, IsDateString } from 'class-validator';
+import { IsNotEmpty, IsInt, IsOptional, IsString, Min, MaxLength } from 'class-validator';
 
 export class CrearRiegoDto {
+  @IsInt()
   @IsNotEmpty()
-  @IsNumber()
   planta_id: number;
 
-  @IsNotEmpty()
-  @IsDateString() // Hallazgo #11: Valida formato de fecha ISO
-  fecha_riego: string;
-
-  @IsNotEmpty()
-  @IsNumber()
-  @IsPositive() // Hallazgo #11: Solo números positivos
+  @IsInt()
+  @Min(1)
   cantidad_ml: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  observaciones?: string;
 }
