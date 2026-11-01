@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpErrorFilter } from './http-error.filter';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { HttpStatus, ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -19,11 +20,12 @@ async function bootstrap() {
   
   app.useGlobalPipes(
     new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,  
-    transform: true,
-  })
-);
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+    }),
+  );
 
   await app.listen(process.env.PORT ?? 3000);
 
