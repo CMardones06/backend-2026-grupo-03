@@ -1,10 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, FindOptionsOrder } from 'typeorm';
 import { Usuario } from '../domain/entities/usuario.entity';
 
 type DatosUsuario = Pick<Usuario, 'nombre' | 'email' | 'rol'> & {
   activo?: boolean;
+};
+
+type ConsultaUsuarios = {
+  rol?: 'admin' | 'user';
+  ordenar_por: 'id' | 'nombre' | 'email' | 'rol';
+  direccion: 'asc' | 'desc';
+  pagina: number;
+  limite: number;
 };
 
 @Injectable()
@@ -14,9 +22,25 @@ export class UsuarioRepository {
     private readonly repository: Repository<Usuario>,
   ) {}
 
-  findAll(): Promise<Usuario[]> {
-    return this.repository.find({
-      order: { id: 'ASC' },
+  findAll(
+    consulta: ConsultaUsuarios,
+  ): Promise<[Usuario[], number]> {
+    const direccion =
+      consulta.direccion === 'asc' ? 'ASC' : 'DESC';
+
+    const orden: FindOptionsOrder<Usuario> = {
+      [consulta.ordenar_por]: direccion,
+    };
+
+    if (consulta.ordenar_por !== 'id') {
+      orden.id = 'ASC';
+    }
+
+    return this.repository.findAndCount({
+      where: consulta.rol ? { rol: consulta.rol } : {},
+      order: orden,
+      skip: (consulta.pagina - 1) * consulta.limite,
+      take: consulta.limite,
     });
   }
 
