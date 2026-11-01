@@ -13,26 +13,26 @@ export class UsuariosService {
     private readonly usuarioRepository: UsuarioRepository,
   ) {}
 
-    async obtenerTodos(consulta: ConsultarUsuariosDto) {
-    const [items, total] =
-        await this.usuarioRepository.findAll(consulta);
+  async obtenerTodos(consulta: ConsultarUsuariosDto) {
+    const [items, total] = await this.usuarioRepository.findAll(consulta);
 
     return {
-        items,
-        total,
-        pagina: consulta.pagina,
-        limite: consulta.limite,
-        total_paginas: Math.ceil(total / consulta.limite),
+      items,
+      total,
+      pagina: consulta.pagina,
+      limite: consulta.limite,
+      total_paginas: Math.ceil(total / consulta.limite),
     };
-    }
+  }
 
   async obtenerPorId(id: number) {
     const usuario = await this.usuarioRepository.findById(id);
 
     if (!usuario) {
-      throw new NotFoundException(
-        `No existe un usuario con ID ${id}`,
-      );
+      throw new NotFoundException({
+        code: 'RESOURCE_NOT_FOUND',
+        message: `No existe un usuario con ID ${id}`,
+      });
     }
 
     return usuario;
@@ -41,13 +41,13 @@ export class UsuariosService {
   async crear(datos: CrearUsuarioDto) {
     const email = datos.email.trim().toLowerCase();
 
-    const existente =
-      await this.usuarioRepository.findByEmail(email);
+    const existente = await this.usuarioRepository.findByEmail(email);
 
     if (existente) {
-      throw new ConflictException(
-        'Ya existe un usuario con ese correo electrónico',
-      );
+      throw new ConflictException({
+        code: 'EMAIL_ALREADY_EXISTS',
+        message: 'El correo electrónico ya se encuentra registrado.',
+      });
     }
 
     return this.usuarioRepository.create({
@@ -60,13 +60,13 @@ export class UsuariosService {
     const usuario = await this.obtenerPorId(id);
     const email = datos.email.trim().toLowerCase();
 
-    const existente =
-      await this.usuarioRepository.findByEmail(email);
+    const existente = await this.usuarioRepository.findByEmail(email);
 
     if (existente && existente.id !== id) {
-      throw new ConflictException(
-        'Ya existe otro usuario con ese correo electrónico',
-      );
+      throw new ConflictException({
+        code: 'EMAIL_ALREADY_EXISTS',
+        message: 'Ya existe otro usuario con ese correo electrónico.',
+      });
     }
 
     return this.usuarioRepository.update(usuario, {
@@ -77,7 +77,6 @@ export class UsuariosService {
 
   async eliminar(id: number): Promise<void> {
     await this.obtenerPorId(id);
-
     await this.usuarioRepository.delete(id);
   }
 }
