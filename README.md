@@ -1,114 +1,125 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Backend - API de Alertas y Cronogramas de Riego (Grupo 03)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST desarrollada con **NestJS** y **TypeScript** para la **Entrega 2** del curso de desarrollo de backend (ICINF1108). Su propósito principal es gestionar el cuidado de plantas en interiores o huertos urbanos, controlando especies, inventario de plantas, usuarios y registros históricos de riego.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
+## Arquitectura del Sistema
 
-## Description
+El proyecto sigue una arquitectura modular orientada a dominios utilizando **NestJS**, organizando la lógica de negocio por responsabilidades (controladores, servicios y validadores).
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ npm install
+### Estructura de Carpetas
+```text
+src/
+├── controllers/      # Controladores de la API (Endpoints / Rutas)
+├── domain/           # Modelos del dominio y entidades en memoria
+├── dto/              # Objetos de transferencia de datos y validaciones
+├── repositories/     # Capa de persistencia y manejo de datos en memoria
+├── schemas/          # Esquemas y validaciones complementarias
+├── services/         # Lógica de negocio y reglas de la aplicación
+├── app.controller.ts # Controlador principal
+├── app.module.ts     # Módulo raíz de la aplicación
+├── app.service.ts    # Servicio raíz
+├── http-error.filter.ts # Filtro global de errores HTTP estructurados
+└── main.ts           # Punto de entrada y configuración de Swagger
 ```
+---
+## Tecnologías y Herramientas
 
-## Compile and run the project
+* **Framework:** [NestJS](https://nestjs.com/) (Node.js)
+* **Lenguaje:** TypeScript
+* **Validación de Datos:** `class-validator` & `class-transformer`
+* **Documentación:** [Swagger / OpenAPI](https://swagger.io/)
+* **Almacenamiento:** En memoria (listas/diccionarios, sin base de datos persistente para esta versión). <!-- editar -->
 
-```bash
-# development
-$ npm run start
+---
 
-# watch mode
-$ npm run start:dev
+## Modelo del Dominio y Entidades
 
-# production mode
-$ npm run start:prod
-```
+El sistema administra cuatro entidades principales con sus respectivas relaciones:
 
-## Run tests
+1. **Usuario:** `id`, `nombre`, `correo`, `nivel_experiencia`, `fecha_registro`.
+2. **Especie:** `id`, `nombre_comun`, `nombre_cientifico`, `dias_entre_riegos`, `requerimiento_luz`.
+3. **Planta (CRUD Completo):** `id`, `apodo`, `fecha_adquisicion`, `estado_salud`, `especie_id` *(Relación 1:N)*.
+4. **RegistroRiego:** `id`, `fecha_riego`, `cantidad_ml`, `tipo_fertilizante`, `planta_id` *(Relación 1:N)*.
 
-```bash
-# unit tests
-$ npm run test
+---
 
-# e2e tests
-$ npm run test:e2e
+## Reglas de Negocio Principales
 
-# test coverage
-$ npm run test:cov
-```
+* **Fecha de Riego Válida:** Una planta no puede recibir un `RegistroRiego` con una fecha futura o mayor a la fecha actual de la solicitud.
+* **Estado de Salud:** No se pueden registrar nuevos riegos si la planta tiene el `estado_salud` en `"Muerto"`.
+* **Integridad Referencial:** Para registrar una planta, la especie referenciada en `especie_id` debe haber sido creada previamente.
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Contrato de la API (12 Endpoints)
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### **Plantas (CRUD Completo)**
+* `POST /plantas` - Crear una nueva planta.
+* `GET /plantas` - Listar todas las plantas (soporta **filtrado, ordenamiento y paginación**).
+* `GET /plantas/{id}` - Obtener una planta específica por ID.
+* `PUT /plantas/{id}` - Actualizar los datos de una planta.
+* `DELETE /plantas/{id}` - Eliminar una planta.
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+### **Otras Entidades y Operaciones**
+* `POST /usuarios` - Registrar un nuevo usuario. (pendiente)
+* `GET /usuarios/{id}` - Obtener información de un usuario. (pendiente)
+* `POST /especies` - Registrar una nueva especie de planta.
+* `GET /especies` - Listar todas las especies disponibles.
+* `POST /plantas/{planta_id}/riegos` - Registrar un evento de riego para una planta.
+* `GET /plantas/{planta_id}/riegos` - Listar el historial de riegos de una planta.
+* `GET /usuarios/{id}/alertas-riego` - Calcular y listar riegos pendientes / alertas. (pendiente)
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Observability
+## Instalación y Configuración Local
 
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
+Sigue estos pasos para poner en marcha el proyecto en tu entorno de desarrollo:
 
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
+1. **Clonar el repositorio:**
+   ```bash
+   git clone <url-del-repositorio>
+   cd backend-2026-grupo-03
+   ```
 
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
+2. **Instalar las dependencias:**
+   ```bash
+   # Si usas PowerShell y tienes restricciones de ejecución de scripts:
+   cmd /c npm install
+   
+   # O directamente en CMD / bash:
+   npm install
+   ```
 
-## Resources
+---
 
-Check out a few resources that may come in handy when working with NestJS:
+##  Ejecución del Servidor
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observer](https://observer.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+* **Modo Desarrollo**:
+  ```bash
+  cmd /c npm run start:dev
+  ```
 
-## Support
+* **Modo Producción**:
+  ```bash
+  cmd /c npm run start:prod
+  ```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+---
 
-## Stay in touch
+## Documentación Interactiva (Swagger)
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Una vez que el servidor esté en ejecución (`http://localhost:3000`), puedes explorar y probar todos los endpoints, esquemas y DTOs ingresando a:
 
-## License
+ **`http://localhost:3000/api`**
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+---
+
+## Desarrolladores del Proyecto 
+
+| Nombre | Rol  | GitHub |
+| :--- | :--- | :--- |
+|**Camila Mardones** | Coordinación y seguimiento / | [@usuario-github](https://github.com/CMardones06) |
+| **Josefa Duarte** | Calidad y Pruebas / | [@usuario-github](https://github.com/jjosefa) |
+| **María Henríquez** | Api y lógica / Dominio y Datos| [@usuario-github](https://github.com/maria-hc) |
+| **Keisy Epul** | Dominio y datos / Documentación e Integración | [@usuario-github](https://github.com/keiishiiEp) |

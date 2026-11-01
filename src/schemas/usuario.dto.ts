@@ -5,7 +5,6 @@ export class CreateUsuarioDto {
   @IsNotEmpty()
   nombre: string;
 
-  //Validación de Formato: Correo electrónico
   @IsEmail({}, { message: 'El correo debe tener un formato válido' })
   correo: string;
 

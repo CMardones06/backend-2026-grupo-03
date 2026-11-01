@@ -16,7 +16,6 @@ export class HttpErrorFilter implements ExceptionFilter {
       status = exception.getStatus();
       const res: any = exception.getResponse();
       
-      //Manejo de errores de validación de los DTOs
       if (Array.isArray(res.message)) {
         code = 'VALIDATION_ERROR';
         message = 'Error en la validación de los datos enviados';
@@ -27,7 +26,6 @@ export class HttpErrorFilter implements ExceptionFilter {
       }
     }
 
-    //Estructura JSON
     response.status(status).json({
       error: {
         code,
