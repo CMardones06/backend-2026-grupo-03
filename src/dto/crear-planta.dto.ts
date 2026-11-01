@@ -1,35 +1,20 @@
-import { IsNotEmpty, IsNumber, IsString, IsEnum } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-
-export enum EstadoSalud {
-  OPTIMO = 'Optimo',
-  REGULAR = 'Regular',
-  CRITICO = 'Critico',
-  MUERTA = 'Muerta',
-}
+import { IsNotEmpty, IsString, IsInt, MaxLength } from 'class-validator';
 
 export class CrearPlantaDto {
-  @ApiProperty ({
-    description: 'Apodo de la planta',
-    example: 'Arrayán pequeño'
-  })
-  @IsNotEmpty()
   @IsString()
-  apodo: string;
-
-  @ApiProperty({
-    description: 'ID de la especie',
-    example: '1'
-  })
   @IsNotEmpty()
-  @IsNumber()
+  @MaxLength(100)
+  nombre: string;
+
+  @IsString()
+  @IsNotEmpty()
+  ubicacion: string;
+
+  @IsInt()
+  @IsNotEmpty()
   especie_id: number;
 
-  @ApiProperty({
-    description: 'Estado de Salud de la planta',
-    example: 'Optimo'
-  })
+  @IsInt()
   @IsNotEmpty()
-  @IsEnum(EstadoSalud, { message: 'El estado de salud no es válido' })
-  estado_salud: EstadoSalud;
+  usuario_id: number;
 }

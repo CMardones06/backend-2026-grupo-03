@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { RegistroRiego } from '../domain/registro-riego.entity';
+import { RegistroRiego } from '../domain/entities/registro-riego.entity';
 
 @Injectable()
 export class RegistroRiegoRepository {

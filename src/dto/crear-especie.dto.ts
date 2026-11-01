@@ -1,21 +1,22 @@
-import { IsNotEmpty, IsString, Length } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsString, IsInt, Min, MaxLength } from 'class-validator';
 
 export class CrearEspecieDto {
-  @ApiProperty({
-    description: 'Nombre de la especie',
-    example: 'Luma apiculata (Arrayán)'
-  })
-  @IsNotEmpty()
   @IsString()
-  @Length(2, 50)
-  nombre: string;
+  @IsNotEmpty()
+  @MaxLength(100)
+  nombre_comun: string;
 
-  @ApiProperty({
-    description: 'Descripción de la especie',
-    example:'arbolito perennifolio originario de los bosques templados de Chile y Argentina que alcanza una altura de 3-5 metros (rara vez 20m).'
-  })
-  @IsNotEmpty()
   @IsString()
-  descripcion: string;
+  @IsNotEmpty()
+  @MaxLength(100)
+  nombre_cientifico: string;
+
+  @IsInt()
+  @Min(1)
+  frecuencia_riego_dias: number;
+
+  @IsString()
+  @IsNotEmpty()
+  tipo_luz: string;
 }

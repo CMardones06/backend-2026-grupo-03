@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Planta } from '../domain/planta.entity';
+import { Planta } from '../domain/entities/planta.entity';
 
 @Injectable()
 export class PlantaRepository {
