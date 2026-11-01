@@ -17,10 +17,8 @@ export class RiegosService {
       });
     }
 
-    // Obtiene la planta (si no existe, obtenerPorId lanza NotFoundException)
     const planta = this.plantasService.obtenerPorId(datos.planta_id);
 
-    // Valida la regla de negocio de planta muerta
     if (planta.estado_salud === 'Muerta') {
       throw new BadRequestException({
         code: 'PLANTA_MUERTA',

@@ -1,22 +1,20 @@
-import { IsNotEmpty, IsNumber, IsString, IsEnum } from 'class-validator';
-
-export enum EstadoSalud {
-  OPTIMO = 'Optimo',
-  REGULAR = 'Regular',
-  CRITICO = 'Critico',
-  MUERTA = 'Muerta', // Hallazgo #10: Unificado a 'Muerta'
-}
+import { IsNotEmpty, IsString, IsInt, MaxLength } from 'class-validator';
 
 export class CrearPlantaDto {
-  @IsNotEmpty()
   @IsString()
-  apodo: string;
-
   @IsNotEmpty()
-  @IsNumber()
+  @MaxLength(100)
+  nombre: string;
+
+  @IsString()
+  @IsNotEmpty()
+  ubicacion: string;
+
+  @IsInt()
+  @IsNotEmpty()
   especie_id: number;
 
+  @IsInt()
   @IsNotEmpty()
-  @IsEnum(EstadoSalud, { message: 'El estado de salud no es válido' })
-  estado_salud: EstadoSalud;
+  usuario_id: number;
 }
