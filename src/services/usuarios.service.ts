@@ -1,82 +1,76 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
-import { UsuarioRepository } from '../repositories/usuario.repository';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Usuario } from '../domain/entities/usuario.entity';
 import { CrearUsuarioDto } from '../dto/crear-usuario.dto';
-import { ConsultarUsuariosDto } from '../dto/consultar-usuarios.dto';
 
 @Injectable()
 export class UsuariosService {
   constructor(
-    private readonly usuarioRepository: UsuarioRepository,
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
   ) {}
 
-  async obtenerTodos(consulta: ConsultarUsuariosDto) {
-    const [items, total] = await this.usuarioRepository.findAll(consulta);
+  async crear(crearUsuarioDto: CrearUsuarioDto): Promise<Usuario> {
+    const nuevoUsuario = this.usuarioRepository.create({
+      nombre: crearUsuarioDto.nombre,
+      email: crearUsuarioDto.email,
+      rol: crearUsuarioDto.rol,
+      activo: crearUsuarioDto.activo ?? true,
+      fecha_registro: new Date(),
+    });
+
+    return await this.usuarioRepository.save(nuevoUsuario);
+  }
+
+  async obtenerTodos(page: number = 1, limit: number = 10) {
+    const take = Number(limit) || 10;
+    const skip = (Number(page) - 1) * take;
+
+    const [data, total] = await this.usuarioRepository.findAndCount({
+      take: Number(take),
+      skip: Number(skip),
+      relations: {
+        plantas: true,
+      },
+    });
 
     return {
-      items,
+      data,
       total,
-      pagina: consulta.pagina,
-      limite: consulta.limite,
-      total_paginas: Math.ceil(total / consulta.limite),
+      page: Number(page),
+      lastPage: Math.ceil(total / take) || 1,
     };
   }
 
-  async obtenerPorId(id: number) {
-    const usuario = await this.usuarioRepository.findById(id);
+  async obtenerPorId(id: number): Promise<Usuario> {
+    const usuario = await this.usuarioRepository.findOne({
+      where: { id: Number(id) },
+      relations: {
+        plantas: true,
+      },
+    });
 
     if (!usuario) {
       throw new NotFoundException({
-        code: 'RESOURCE_NOT_FOUND',
-        message: `No existe un usuario con ID ${id}`,
+        code: 'USUARIO_NO_ENCONTRADO',
+        message: `No existe un usuario con el id ${id}`,
       });
     }
-
     return usuario;
   }
 
-  async crear(datos: CrearUsuarioDto) {
-    const email = datos.email.trim().toLowerCase();
-
-    const existente = await this.usuarioRepository.findByEmail(email);
-
-    if (existente) {
-      throw new ConflictException({
-        code: 'EMAIL_ALREADY_EXISTS',
-        message: 'El correo electrónico ya se encuentra registrado.',
-      });
-    }
-
-    return this.usuarioRepository.create({
-      ...datos,
-      email,
-    });
-  }
-
-  async actualizar(id: number, datos: CrearUsuarioDto) {
+  async actualizar(id: number, actualizarDto: Partial<CrearUsuarioDto>): Promise<Usuario> {
     const usuario = await this.obtenerPorId(id);
-    const email = datos.email.trim().toLowerCase();
 
-    const existente = await this.usuarioRepository.findByEmail(email);
+    this.usuarioRepository.merge(usuario, actualizarDto as any);
 
-    if (existente && existente.id !== id) {
-      throw new ConflictException({
-        code: 'EMAIL_ALREADY_EXISTS',
-        message: 'Ya existe otro usuario con ese correo electrónico.',
-      });
-    }
-
-    return this.usuarioRepository.update(usuario, {
-      ...datos,
-      email,
-    });
+    return await this.usuarioRepository.save(usuario);
   }
 
-  async eliminar(id: number): Promise<void> {
-    await this.obtenerPorId(id);
-    await this.usuarioRepository.delete(id);
+  async eliminar(id: number): Promise<{ message: string }> {
+    const usuario = await this.obtenerPorId(id);
+    await this.usuarioRepository.remove(usuario);
+    return { message: `El usuario con id ${id} ha sido eliminado con éxito` };
   }
 }

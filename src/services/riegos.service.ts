@@ -1,53 +1,120 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
-import { PlantasService } from './plantas.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { RegistroRiego } from '../domain/entities/registro-riego.entity';
+import { Planta } from '../domain/entities/planta.entity';
 import { CrearRiegoDto } from '../dto/crear-riego.dto';
 
 @Injectable()
 export class RiegosService {
-  private riegos: any[] = [];
+  constructor(
+    @InjectRepository(RegistroRiego)
+    private readonly riegoRepository: Repository<RegistroRiego>,
+    @InjectRepository(Planta)
+    private readonly plantaRepository: Repository<Planta>,
+  ) {}
 
-  constructor(private readonly plantasService: PlantasService) {}
-
-  crearRiego(datos: CrearRiegoDto) {
-    
-    const fechaRiego = datos.fecha_riego ? new Date(datos.fecha_riego) : new Date();
-
-  
-    if (fechaRiego > new Date()) {
+  async crearRiego(crearRiegoDto: CrearRiegoDto): Promise<RegistroRiego> {
+    const fechaRiego = new Date(crearRiegoDto.fecha_riego);
+    const ahora = new Date();
+    if (fechaRiego > ahora) {
       throw new BadRequestException({
-        code: 'INVALID_RIEGO_DATE',
-        message: 'La fecha de riego no puede ser una fecha futura',
+        error: {
+          code: 'INVALID_DATE',
+          message: 'No se puede registrar un riego con una fecha futura',
+          details: [],
+        },
       });
     }
 
-    const planta = this.plantasService.obtenerPorId(datos.planta_id);
+    const planta = await this.plantaRepository.findOne({
+      where: { id: crearRiegoDto.planta_id },
+    });
 
     if (!planta) {
       throw new NotFoundException({
-        code: 'RESOURCE_NOT_FOUND',
-        message: `La planta con ID ${datos.planta_id} no existe`,
+        error: {
+          code: 'RESOURCE_NOT_FOUND',
+          message: 'No existe una planta con el ID solicitado',
+          details: [],
+        },
       });
     }
 
-    
-    if (planta.estado_salud === 'Muerta' || planta.estado === 'MUERTA') {
+    if (planta.estado_salud === 'Muerto' || planta.estado_salud === 'Muerta') {
       throw new BadRequestException({
-        code: 'CANNOT_WATER_DEAD_PLANT',
-        message: 'No se puede registrar un riego para una planta en estado muerta',
+        error: {
+          code: 'PLANTA_MUERTA',
+          message: 'No se puede registrar riegos para una planta muerta',
+        },
       });
     }
 
-    const nuevoRiego = {
-      id: this.riegos.length > 0 ? Math.max(...this.riegos.map((r) => r.id)) + 1 : 1,
-      ...datos,
+    const nuevoRiego = this.riegoRepository.create({
+      ...crearRiegoDto,
       fecha_riego: fechaRiego,
-    };
+    });
 
-    this.riegos.push(nuevoRiego);
-    return nuevoRiego;
+    return await this.riegoRepository.save(nuevoRiego);
   }
 
-  obtenerTodos() {
-    return this.riegos;
+  async obtenerTodos(page: number = 1, limit: number = 10) {
+    const take = Number(limit) || 10;
+    const skip = (Number(page) - 1) * take;
+
+    const [data, total] = await this.riegoRepository.findAndCount({
+      take: Number(take),
+      skip: Number(skip),
+      relations: {
+        planta: true,
+      },
+    });
+
+    return {
+      data,
+      total,
+      page: Number(page),
+      lastPage: Math.ceil(total / take) || 1,
+    };
+  }
+
+  async obtenerPorId(id: number): Promise<RegistroRiego> {
+    const riego = await this.riegoRepository.findOne({
+      where: { id: Number(id) },
+      relations: {
+        planta: true,
+      },
+    });
+
+    if (!riego) {
+      throw new NotFoundException({
+        code: 'RIEGO_NO_ENCONTRADO',
+        message: `No existe un registro de riego con el id ${id}`,
+      });
+    }
+    return riego;
+  }
+
+  async actualizar(id: number, actualizarDto: Partial<CrearRiegoDto>): Promise<RegistroRiego> {
+    const riego = await this.obtenerPorId(id);
+
+    if (actualizarDto.fecha_riego) {
+      const fechaRiego = new Date(actualizarDto.fecha_riego);
+      if (fechaRiego > new Date()) {
+        throw new BadRequestException({
+          message: 'No se puede actualizar un riego con una fecha futura',
+        });
+      }
+      actualizarDto.fecha_riego = fechaRiego as any;
+    }
+
+    this.riegoRepository.merge(riego, actualizarDto);
+    return await this.riegoRepository.save(riego);
+  }
+
+  async eliminar(id: number): Promise<{ message: string }> {
+    const riego = await this.obtenerPorId(id);
+    await this.riegoRepository.remove(riego);
+    return { message: `El registro de riego con id ${id} ha sido eliminado` };
   }
 }
