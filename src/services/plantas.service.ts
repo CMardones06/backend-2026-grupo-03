@@ -1,15 +1,22 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { EspeciesService } from './especies.service';
 
 @Injectable()
 export class PlantasService {
   private plantas: any[] = [];
 
+  constructor(private readonly especiesService: EspeciesService) {}
+
   crearPlanta(datos: any) {
+    if (!this.especiesService.existe(datos.especie_id)) {
+      throw new BadRequestException({
+        code: 'ESPECIE_NO_ENCONTRADA',
+        message: `No existe una especie con id ${datos.especie_id}`,
+      });
+    }
+
     const nuevaPlanta = {
-      id:
-        this.plantas.length > 0
-          ? Math.max(...this.plantas.map((p) => p.id)) + 1
-          : 1,
+      id: this.plantas.length > 0 ? Math.max(...this.plantas.map((p) => p.id)) + 1 : 1,
       ...datos,
     };
 
@@ -24,48 +31,49 @@ export class PlantasService {
     pagina: number = 1,
     limite: number = 10,
   ) {
-    let resultado = [...this.plantas];
-
-    // 1. Filtrado
-    if (estadoSalud) {
-      resultado = resultado.filter(
-        (planta) => planta.estado_salud === estadoSalud,
-      );
+    if (!['asc', 'desc'].includes(direccion)) {
+      throw new BadRequestException({ code: 'DIRECCION_INVALIDA', message: 'direccion debe ser asc o desc' });
+    }
+    if (limite < 1 || limite > 100) {
+      throw new BadRequestException({ code: 'LIMITE_INVALIDO', message: 'limite debe estar entre 1 y 100' });
+    }
+    if (pagina < 1) {
+      throw new BadRequestException({ code: 'PAGINA_INVALIDA', message: 'pagina debe ser mayor o igual a 1' });
     }
 
-    // 2. Ordenamiento
+    let resultado = [...this.plantas];
+
+    if (estadoSalud) {
+      resultado = resultado.filter((p) => p.estado_salud === estadoSalud);
+    }
+
     resultado.sort((a, b) => {
       if (a[ordenarPor] < b[ordenarPor]) return direccion === 'asc' ? -1 : 1;
       if (a[ordenarPor] > b[ordenarPor]) return direccion === 'asc' ? 1 : -1;
       return 0;
     });
 
-    // 3. Paginación
     const total = resultado.length;
-    const totalPaginas = Math.ceil(total / limite);
+    const totalPaginas = Math.ceil(total / limite) || 1;
     const startIndex = (pagina - 1) * limite;
-    const endIndex = startIndex + limite;
+    const datosPaginados = resultado.slice(startIndex, startIndex + limite);
 
-    const datosPaginados = resultado.slice(startIndex, endIndex);
-
-    // 4. Retorno de estructura con metadatos
     return {
-      data: datosPaginados,
-      meta: {
-        total: total,
-        pagina: pagina,
-        limite: limite,
-        total_paginas: totalPaginas,
-        filtros: { estado_salud: estadoSalud || null },
-        orden: { campo: ordenarPor, direccion },
-      },
+      items: datosPaginados,
+      total,
+      pagina,
+      limite,
+      total_paginas: totalPaginas,
     };
   }
 
   obtenerPorId(id: number) {
     const planta = this.plantas.find((p) => Number(p.id) === Number(id));
     if (!planta) {
-      throw new NotFoundException(`Planta con ID ${id} no encontrada`);
+      throw new NotFoundException({
+        code: 'PLANTA_NO_ENCONTRADA',
+        message: `La planta con ID ${id} no existe`,
+      });
     }
     return planta;
   }
@@ -73,7 +81,17 @@ export class PlantasService {
   actualizar(id: number, datos: any) {
     const index = this.plantas.findIndex((p) => Number(p.id) === Number(id));
     if (index === -1) {
-      throw new NotFoundException(`Planta con ID ${id} no encontrada`);
+      throw new NotFoundException({
+        code: 'PLANTA_NO_ENCONTRADA',
+        message: `La planta con ID ${id} no existe`,
+      });
+    }
+
+    if (datos.especie_id && !this.especiesService.existe(datos.especie_id)) {
+      throw new BadRequestException({
+        code: 'ESPECIE_NO_ENCONTRADA',
+        message: `No existe una especie con id ${datos.especie_id}`,
+      });
     }
 
     this.plantas[index] = { ...this.plantas[index], ...datos };
@@ -83,7 +101,10 @@ export class PlantasService {
   eliminar(id: number) {
     const index = this.plantas.findIndex((p) => Number(p.id) === Number(id));
     if (index === -1) {
-      throw new NotFoundException(`Planta con ID ${id} no encontrada`);
+      throw new NotFoundException({
+        code: 'PLANTA_NO_ENCONTRADA',
+        message: `La planta con ID ${id} no existe`,
+      });
     }
 
     this.plantas.splice(index, 1);

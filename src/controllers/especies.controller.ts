@@ -1,35 +1,24 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, HttpCode, HttpStatus } from '@nestjs/common';
+import { EspeciesService } from '../services/especies.service';
+import { CrearEspecieDto } from '../dto/crear-especie.dto';
 
 @Controller('especies')
 export class EspeciesController {
+  constructor(private readonly especiesService: EspeciesService) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  crear(@Body() datos: any) {
-    return { id: 1, ...datos };
+  crear(@Body() datos: CrearEspecieDto) {
+    return this.especiesService.crear(datos);
   }
 
   @Get()
-  @HttpCode(HttpStatus.OK)
   obtenerTodas() {
-    return [];
+    return this.especiesService.obtenerTodas();
   }
 
   @Get(':id')
-  @HttpCode(HttpStatus.OK)
   obtenerPorId(@Param('id') id: string) {
-    return { id: Number(id), nombre_comun: 'Monstera' };
-  }
-
-  @Put(':id')
-  @HttpCode(HttpStatus.OK)
-  actualizar(@Param('id') id: string, @Body() datos: any) {
-    return { id: Number(id), ...datos };
-  }
-
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  eliminar(@Param('id') id: string) {
-    return;
+    return this.especiesService.obtenerPorId(Number(id));
   }
 }

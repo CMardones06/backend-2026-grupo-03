@@ -1,38 +1,43 @@
-import { Injectable, UnprocessableEntityException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
+import { PlantasService } from './plantas.service';
 
 @Injectable()
 export class RiegosService {
   private riegos: any[] = [];
-  private plantas: any[] = [];
+
+  constructor(private readonly plantasService: PlantasService) {}
 
   crearRiego(datos: any) {
-    const fechaActual = new Date();
-    const fechaIngresada = new Date(datos.fecha_riego);
-
-    if (fechaIngresada > fechaActual) {
-      throw new UnprocessableEntityException({
+    // Validar que la fecha no sea futura
+    const fechaRiego = new Date(datos.fecha_riego);
+    if (fechaRiego > new Date()) {
+      throw new BadRequestException({
         code: 'FECHA_INVALIDA',
-        message: 'La fecha del riego no puede ser futura',
+        message: 'La fecha de riego no puede ser futura',
       });
     }
 
-    const planta = this.plantas.find((p: any) => p.id === datos.planta_id);
-    if (!planta) {
-      throw new NotFoundException({
-        code: 'PLANTA_NO_ENCONTRADA',
-        message: 'No existe la planta especificada',
-      });
-    }
+    // Obtiene la planta (si no existe, obtenerPorId lanza NotFoundException)
+    const planta = this.plantasService.obtenerPorId(datos.planta_id);
 
+    // Valida la regla de negocio de planta muerta
     if (planta.estado_salud === 'Muerta') {
-      throw new UnprocessableEntityException({
+      throw new BadRequestException({
         code: 'PLANTA_MUERTA',
-        message: 'No se puede registrar riego a una planta muerta',
+        message: 'No se puede registrar riegos para una planta muerta',
       });
     }
 
-    const nuevoRiego = { id: this.riegos.length + 1, ...datos };
+    const nuevoRiego = {
+      id: this.riegos.length > 0 ? Math.max(...this.riegos.map((r) => r.id)) + 1 : 1,
+      ...datos,
+    };
+
     this.riegos.push(nuevoRiego);
     return nuevoRiego;
+  }
+
+  obtenerTodos() {
+    return this.riegos;
   }
 }
