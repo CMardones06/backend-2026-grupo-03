@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
-
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn ,OneToMany } from 'typeorm';
+import { Planta} from './planta.entity';
 @Entity('usuarios')
 export class Usuario {
   @PrimaryGeneratedColumn()
@@ -14,6 +14,12 @@ export class Usuario {
   @Column({ type: 'varchar', length: 50 })
   rol: string;
 
+  @CreateDateColumn({ type: 'date' })
+  fecha_registro: Date;
+
   @Column({ type: 'boolean', default: true })
   activo: boolean;
+
+  @OneToMany(() => Planta, (planta: Planta) => planta.usuario)
+  plantas: Planta[];
 }

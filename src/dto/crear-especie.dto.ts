@@ -1,8 +1,9 @@
-import { IsNotEmpty, IsString, IsInt, Min, MaxLength } from 'class-validator';
-
+import { IsNotEmpty, IsString, IsInt, Min, MaxLength, MinLength, IsEnum, IsOptional } from 'class-validator';
+import { Luz_Requerida } from '../domain/entities/especie.entity';
 export class CrearEspecieDto {
   @IsString()
   @IsNotEmpty()
+  @MinLength(3)
   @MaxLength(100)
   nombre_comun: string;
 
@@ -11,11 +12,22 @@ export class CrearEspecieDto {
   @MaxLength(100)
   nombre_cientifico: string;
 
-  @IsInt()
-  @Min(1)
-  frecuencia_riego_dias: number;
-
   @IsString()
   @IsNotEmpty()
-  tipo_luz: string;
+  @MaxLength(50)
+  origen: string;
+
+  @IsString()
+  @IsOptional()
+  descripcion: string;
+
+  @IsInt()
+  @Min(1)
+  @IsNotEmpty()
+  frec_riego: number;
+
+  @IsEnum(Luz_Requerida, {
+    message: 'El requerimiento de luz debe ser: Directa, Indirecta, Sombra o Poca luz',
+  })
+  requerimiento_luz: Luz_Requerida;
 }

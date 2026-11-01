@@ -5,7 +5,7 @@ export class CrearUsuarioDto {
   @IsNotEmpty()
   @MaxLength(100)
   nombre: string;
-
+ 
   @IsEmail()
   @IsNotEmpty()
   email: string;
@@ -13,4 +13,5 @@ export class CrearUsuarioDto {
   @IsString()
   @IsNotEmpty()
   rol: string;
+
 }
