@@ -10,19 +10,24 @@ export class HttpErrorFilter implements ExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let code = 'INTERNAL_ERROR';
     let message = 'Ocurrió un error interno';
-    let details = [];
+    let details: any[] = [];
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const res: any = exception.getResponse();
       
-      if (Array.isArray(res.message)) {
         code = 'VALIDATION_ERROR';
         message = 'Error en la validación de los datos enviados';
         details = res.message;
-      } else {
-        code = res.error || 'HTTP_ERROR';
+      } 
+      
+      else if (typeof res === 'object' && res !== null) {
+        code = res.code || res.error || (status === 404 ? 'RESOURCE_NOT_FOUND' : 'BAD_REQUEST');
         message = res.message || exception.message;
+        details = res.details || [];
+      } else {
+        code = status === 404 ? 'RESOURCE_NOT_FOUND' : 'BAD_REQUEST';
+        message = typeof res === 'string' ? res : exception.message;
       }
     }
 

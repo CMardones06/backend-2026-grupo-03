@@ -1,5 +1,6 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PlantasService } from './plantas.service';
+import { CrearRiegoDto } from '../dto/crear-riego.dto';
 
 @Injectable()
 export class RiegosService {
@@ -7,28 +8,39 @@ export class RiegosService {
 
   constructor(private readonly plantasService: PlantasService) {}
 
-  crearRiego(datos: any) {
-    // Validar que la fecha no sea futura
-    const fechaRiego = new Date(datos.fecha_riego);
+  crearRiego(datos: CrearRiegoDto) {
+    
+    const fechaRiego = datos.fecha_riego ? new Date(datos.fecha_riego) : new Date();
+
+  
     if (fechaRiego > new Date()) {
       throw new BadRequestException({
-        code: 'FECHA_INVALIDA',
-        message: 'La fecha de riego no puede ser futura',
+        code: 'INVALID_RIEGO_DATE',
+        message: 'La fecha de riego no puede ser una fecha futura',
       });
     }
 
     const planta = this.plantasService.obtenerPorId(datos.planta_id);
 
-    if (planta.estado_salud === 'Muerta') {
+    if (!planta) {
+      throw new NotFoundException({
+        code: 'RESOURCE_NOT_FOUND',
+        message: `La planta con ID ${datos.planta_id} no existe`,
+      });
+    }
+
+    
+    if (planta.estado_salud === 'Muerta' || planta.estado === 'MUERTA') {
       throw new BadRequestException({
-        code: 'PLANTA_MUERTA',
-        message: 'No se puede registrar riegos para una planta muerta',
+        code: 'CANNOT_WATER_DEAD_PLANT',
+        message: 'No se puede registrar un riego para una planta en estado muerta',
       });
     }
 
     const nuevoRiego = {
       id: this.riegos.length > 0 ? Math.max(...this.riegos.map((r) => r.id)) + 1 : 1,
       ...datos,
+      fecha_riego: fechaRiego,
     };
 
     this.riegos.push(nuevoRiego);
