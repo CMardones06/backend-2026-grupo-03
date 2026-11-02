@@ -26,6 +26,7 @@ export class CrearUsuarioDto {
   @IsString()
   @Length(2, 100)
   nombre: string;
+<<<<<<< HEAD
 
   @ApiProperty({
     description: 'Correo único del usuario; se guarda en minúsculas',
@@ -38,6 +39,9 @@ export class CrearUsuarioDto {
       ? value.trim().toLowerCase()
       : value,
   )
+=======
+ 
+>>>>>>> 8ee9d3bd6e98ef713f45a373de1ead804e9cc8e7
   @IsEmail()
   @MaxLength(150)
   email: string;
@@ -53,6 +57,7 @@ export class CrearUsuarioDto {
   })
   rol: string;
 
+<<<<<<< HEAD
   @ApiPropertyOptional({
     description:
       'Al crear se utiliza true si se omite; al actualizar se conserva el valor existente',
@@ -61,4 +66,6 @@ export class CrearUsuarioDto {
   @IsOptional()
   @IsBoolean()
   activo?: boolean;
+=======
+>>>>>>> 8ee9d3bd6e98ef713f45a373de1ead804e9cc8e7
 }

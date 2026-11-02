@@ -1,11 +1,13 @@
 import { IsNotEmpty, IsInt, IsOptional, IsString, Min, MaxLength, IsDateString } from 'class-validator';
 
 export class CrearRiegoDto {
-  @IsInt()
+  @IsDateString()
   @IsNotEmpty()
-  planta_id: number;
-
+  fecha_riego: string;
+  
   @IsInt()
+  @IsPositive({ message: 'La cantidad en ml debe ser mayor a 0' })
+  @IsNotEmpty()
   @Min(1)
   cantidad_ml: number;
 

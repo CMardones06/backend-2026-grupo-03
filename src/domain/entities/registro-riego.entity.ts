@@ -6,10 +6,6 @@ export class RegistroRiego {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'int' })
-  planta_id: number;
-
-  // Cambiado type: 'timestamp' por type: 'datetime' para compatibilidad con SQLite
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   fecha_riego: Date;
 
@@ -18,6 +14,9 @@ export class RegistroRiego {
 
   @Column({ type: 'varchar', length: 100, nullable: true })
   observaciones: string;
+
+  @Column({ type: 'int' })
+  planta_id: number;
 
   @ManyToOne(() => Planta, (planta) => planta.riegos, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'planta_id' })
