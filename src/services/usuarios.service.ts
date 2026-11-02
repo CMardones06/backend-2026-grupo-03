@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Usuario } from '../domain/entities/usuario.entity';
@@ -8,16 +12,30 @@ import { ConsultarUsuariosDto } from '../dto/consultar-usuarios.dto';
 
 @Injectable()
 export class UsuariosService {
-    constructor(
+  constructor(
     @InjectRepository(Usuario)
     private readonly usuarioRepository: Repository<Usuario>,
     private readonly usuariosConsultaRepository: UsuarioRepository,
-    ) {}
+  ) {}
 
   async crear(crearUsuarioDto: CrearUsuarioDto): Promise<Usuario> {
+    const email = crearUsuarioDto.email.trim().toLowerCase();
+
+    
+    const existe = await this.usuarioRepository.findOne({
+      where: { email },
+    });
+
+    if (existe) {
+      throw new ConflictException({
+        code: 'EMAIL_ALREADY_EXISTS',
+        message: 'El correo electrónico ya se encuentra registrado',
+      });
+    }
+
     const nuevoUsuario = this.usuarioRepository.create({
       nombre: crearUsuarioDto.nombre,
-      email: crearUsuarioDto.email,
+      email,
       rol: crearUsuarioDto.rol,
       activo: crearUsuarioDto.activo ?? true,
       fecha_registro: new Date(),
@@ -26,18 +44,18 @@ export class UsuariosService {
     return await this.usuarioRepository.save(nuevoUsuario);
   }
 
-    async obtenerTodos(consulta: ConsultarUsuariosDto) {
+  async obtenerTodos(consulta: ConsultarUsuariosDto) {
     const [items, total] =
-        await this.usuariosConsultaRepository.findAll(consulta);
+      await this.usuariosConsultaRepository.findAll(consulta);
 
     return {
-        items,
-        total,
-        pagina: consulta.pagina,
-        limite: consulta.limite,
-        total_paginas: Math.ceil(total / consulta.limite),
+      items,
+      total,
+      pagina: consulta.pagina,
+      limite: consulta.limite,
+      total_paginas: Math.ceil(total / consulta.limite),
     };
-    }
+  }
 
   async obtenerPorId(id: number): Promise<Usuario> {
     const usuario = await this.usuarioRepository.findOne({
@@ -56,8 +74,27 @@ export class UsuariosService {
     return usuario;
   }
 
-  async actualizar(id: number, actualizarDto: Partial<CrearUsuarioDto>): Promise<Usuario> {
+  async actualizar(
+    id: number,
+    actualizarDto: Partial<CrearUsuarioDto>,
+  ): Promise<Usuario> {
     const usuario = await this.obtenerPorId(id);
+
+    
+    if (actualizarDto.email) {
+      const email = actualizarDto.email.trim().toLowerCase();
+      const existe = await this.usuarioRepository.findOne({
+        where: { email },
+      });
+
+      if (existe && existe.id !== Number(id)) {
+        throw new ConflictException({
+          code: 'EMAIL_ALREADY_EXISTS',
+          message: 'Ya existe otro usuario con ese correo electrónico',
+        });
+      }
+      actualizarDto.email = email;
+    }
 
     this.usuarioRepository.merge(usuario, actualizarDto as any);
 
