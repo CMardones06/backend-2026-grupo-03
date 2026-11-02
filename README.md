@@ -154,7 +154,6 @@ Aunque la base de datos permite que `especie_id` y `usuario_id` sean nulos, el D
 ```powershell
 git clone https://github.com/CMardones06/backend-2026-grupo-03.git
 cd backend-2026-grupo-03
-git switch feature/dominio-y-persistencia
 npm install
 ```
 
