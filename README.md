@@ -48,6 +48,102 @@ Relaciones:
 
 La base de datos define eliminación en cascada de plantas al eliminar su especie y de registros de riego al eliminar su planta. Al eliminar un usuario, sus plantas permanecen con `usuario_id` en `null`.
 
+## Diagrama de clases
+
+```mermaid
+classDiagram
+    class Usuario {
+        +number id
+        +string nombre
+        +string email
+        +string rol
+        +boolean activo
+    }
+
+    class Especie {
+        +number id
+        +string nombre_comun
+        +string nombre_cientifico
+        +string origen
+        +string descripcion
+    }
+
+    class Planta {
+        +number id
+        +string nombre
+        +string apodo
+        +string ubicacion
+        +string estado_salud
+        +Date fecha_ingreso
+        +string fecha_adquisicion
+        +number especie_id
+        +number usuario_id
+    }
+
+    class RegistroRiego {
+        +number id
+        +Date fecha_riego
+        +number cantidad_ml
+        +string observaciones
+        +number planta_id
+    }
+
+    Usuario "0..1" -- "0..*" Planta : tiene
+    Especie "0..1" -- "0..*" Planta : clasifica
+    Planta "1" -- "0..*" RegistroRiego : registra
+```
+
+Una planta puede tener un usuario y una especie asociados. En el esquema actual, ambas relaciones permiten valores nulos. Cada registro de riego pertenece obligatoriamente a una planta.
+
+## Diagrama de base de datos
+
+```mermaid
+erDiagram
+    usuarios o|--o{ plantas : tiene
+    especies o|--o{ plantas : clasifica
+    plantas ||--o{ registros_riego : registra
+
+    usuarios {
+        integer id PK
+        varchar nombre
+        varchar email UK
+        varchar rol
+        boolean activo
+    }
+
+    especies {
+        integer id PK
+        varchar nombre_comun
+        varchar nombre_cientifico
+        varchar origen
+        text descripcion
+    }
+
+    plantas {
+        integer id PK
+        varchar nombre
+        varchar ubicacion
+        varchar estado_salud
+        date fecha_ingreso
+        integer especie_id FK
+        varchar apodo
+        date fecha_adquisicion
+        integer usuario_id FK
+    }
+
+    registros_riego {
+        integer id PK
+        integer planta_id FK
+        datetime fecha_riego
+        integer cantidad_ml
+        varchar observaciones
+    }
+```
+
+`PK` identifica una clave primaria, `FK` una clave foránea y `UK` una restricción de unicidad.
+
+Aunque la base de datos permite que `especie_id` y `usuario_id` sean nulos, el DTO de creación de plantas exige ambos identificadores.
+
 ## Requisitos
 
 - Node.js y npm.
