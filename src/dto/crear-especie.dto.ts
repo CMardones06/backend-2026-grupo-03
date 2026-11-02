@@ -5,7 +5,11 @@ import {
   MinLength, 
   IsOptional 
 } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  PartialType,
+} from '@nestjs/swagger';
 
 export class CrearEspecieDto {
   @ApiProperty()
@@ -32,8 +36,6 @@ export class CrearEspecieDto {
   @IsString()
   descripcion?: string;
 
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  requerimiento_luz: string;
 }
+
+export class ActualizarEspecieDto extends PartialType(CrearEspecieDto) {}

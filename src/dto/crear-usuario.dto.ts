@@ -7,11 +7,11 @@ import {
   IsString,
   Length,
   MaxLength,
-  MinLength,
 } from 'class-validator';
 import {
   ApiProperty,
   ApiPropertyOptional,
+  PartialType,
 } from '@nestjs/swagger';
 
 export class CrearUsuarioDto {
@@ -37,14 +37,6 @@ export class CrearUsuarioDto {
   email: string;
 
   @ApiProperty({
-    description: 'Contraseña del usuario',
-    example: '123456',
-  })
-  @IsString()
-  @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
-  password: string;
-
-  @ApiProperty({
     description: 'Rol del usuario',
     example: 'user',
     enum: ['admin', 'user'],
@@ -63,3 +55,5 @@ export class CrearUsuarioDto {
   @IsBoolean()
   activo?: boolean;
 }
+
+export class ActualizarUsuarioDto extends PartialType(CrearUsuarioDto) {}

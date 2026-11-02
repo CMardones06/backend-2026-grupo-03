@@ -42,7 +42,7 @@ export class Planta {
   apodo?: string;
 
   @Column({ type: 'date', nullable: true })
-  fecha_adquisicion?: Date;
+  fecha_adquisicion?: string;
 
   @Column({ nullable: true })
   usuario_id?: number;

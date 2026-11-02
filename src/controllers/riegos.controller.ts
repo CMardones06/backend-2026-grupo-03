@@ -1,6 +1,19 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Delete,
+  Query,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { RiegosService } from '../services/riegos.service';
-import { CrearRiegoDto } from '../dto/crear-riego.dto';
+import {
+  CrearRiegoDto,
+  ActualizarRiegoDto,
+} from '../dto/crear-riego.dto';
 
 @Controller('riegos')
 export class RiegosController {
@@ -20,20 +33,20 @@ export class RiegosController {
   }
 
   @Get(':id')
-  async obtenerPorId(@Param('id') id: number) {
-    return await this.riegosService.obtenerPorId(Number(id));
+  async obtenerPorId(@Param('id', ParseIntPipe) id: number) {
+    return await this.riegosService.obtenerPorId(id);
   }
 
   @Put(':id')
   async actualizar(
-    @Param('id') id: number,
-    @Body() actualizarDto: Partial<CrearRiegoDto>,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() actualizarDto: ActualizarRiegoDto,
   ) {
-    return await this.riegosService.actualizar(Number(id), actualizarDto);
+    return await this.riegosService.actualizar(id, actualizarDto);
   }
 
   @Delete(':id')
-  async eliminar(@Param('id') id: number) {
-    return await this.riegosService.eliminar(Number(id));
+  async eliminar(@Param('id', ParseIntPipe) id: number) {
+    return await this.riegosService.eliminar(id);
   }
 }

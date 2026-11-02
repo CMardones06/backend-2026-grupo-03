@@ -102,10 +102,11 @@ export class RiegosService {
   ): Promise<RegistroRiego> {
     const registro = await this.obtenerPorId(id);
 
-    if (actualizarDto.planta_id) {
+    if (actualizarDto.planta_id !== undefined) {
       const plantaExiste = await this.plantaRepository.findOne({
-        where: { id: Number(actualizarDto.planta_id) },
+        where: { id: actualizarDto.planta_id },
       });
+
       if (!plantaExiste) {
         throw new NotFoundException({
           code: 'PLANTA_NO_ENCONTRADA',
@@ -113,18 +114,24 @@ export class RiegosService {
         });
       }
 
-       //Regla de Negocio al actualizar: Prohibición de regar planta muerta
-      const estadoSalud = String(plantaExiste.estado_salud || '').toUpperCase();
+      const estadoSalud = String(
+        plantaExiste.estado_salud || '',
+      ).toUpperCase();
+
       if (estadoSalud === 'MUERTO' || estadoSalud === 'MUERTA') {
         throw new BadRequestException({
           code: 'CANNOT_WATER_DEAD_PLANT',
           message: 'No se puede asociar el riego a una planta en estado muerta',
         });
       }
+
+      registro.planta = plantaExiste;
+      registro.planta_id = plantaExiste.id;
     }
 
-    if (actualizarDto.fecha_riego) {
+    if (actualizarDto.fecha_riego !== undefined) {
       const fechaRiego = new Date(actualizarDto.fecha_riego);
+
       if (fechaRiego > new Date()) {
         throw new BadRequestException({
           code: 'INVALID_RIEGO_DATE',
@@ -140,6 +147,7 @@ export class RiegosService {
   async eliminar(id: number): Promise<{ message: string }> {
     const registro = await this.obtenerPorId(id);
     await this.registroRiegoRepository.remove(registro);
+
     return {
       message: `El registro de riego con id ${id} ha sido eliminado exitosamente`,
     };

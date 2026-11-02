@@ -8,7 +8,11 @@ import {
   IsDateString, 
   IsPositive 
 } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  PartialType,
+} from '@nestjs/swagger';
 
 export class CrearRiegoDto {
   @ApiProperty({ description: 'ID de la planta a la que se le aplica el riego' })
@@ -35,3 +39,5 @@ export class CrearRiegoDto {
   @MaxLength(100, { message: 'Las observaciones no pueden superar los 100 caracteres' })
   observaciones?: string;
 }
+
+export class ActualizarRiegoDto extends PartialType(CrearRiegoDto) {}

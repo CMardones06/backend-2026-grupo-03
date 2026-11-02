@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Planta } from '../domain/entities/planta.entity';
+import { Planta, EstadoSalud } from '../domain/entities/planta.entity';
 import { Especie } from '../domain/entities/especie.entity';
 import { Usuario } from '../domain/entities/usuario.entity';
 import { CrearPlantaDto } from '../dto/crear-planta.dto';
@@ -40,10 +40,11 @@ export class PlantasService {
     }
 
     const nuevaPlanta = this.plantaRepository.create({
+      nombre: crearPlantaDto.nombre,
       apodo: crearPlantaDto.apodo,
       ubicacion: crearPlantaDto.ubicacion,
-      estado_salud: crearPlantaDto.estado_salud || ('Saludable' as any),
-      fecha_adquisicion: new Date(crearPlantaDto.fecha_adquisicion),
+      estado_salud: crearPlantaDto.estado_salud ?? EstadoSalud.SALUDABLE,
+      fecha_adquisicion: crearPlantaDto.fecha_adquisicion,
       especie,
       usuario,
     });
@@ -112,7 +113,6 @@ export class PlantasService {
       planta.especie = especie;
     }
 
-    // Actualización de la relación Usuario (Punto 5)
     if (actualizarDto.usuario_id) {
       const usuario = await this.usuarioRepository.findOne({
         where: { id: Number(actualizarDto.usuario_id) },
@@ -126,12 +126,14 @@ export class PlantasService {
       planta.usuario = usuario;
     }
 
+    if (actualizarDto.nombre !== undefined) {
+      planta.nombre = actualizarDto.nombre;}
     if (actualizarDto.apodo) planta.apodo = actualizarDto.apodo;
     if (actualizarDto.ubicacion) planta.ubicacion = actualizarDto.ubicacion;
     if (actualizarDto.estado_salud)
       planta.estado_salud = actualizarDto.estado_salud;
-    if (actualizarDto.fecha_adquisicion) {
-      planta.fecha_adquisicion = new Date(actualizarDto.fecha_adquisicion);
+    if (actualizarDto.fecha_adquisicion !== undefined) {
+      planta.fecha_adquisicion = actualizarDto.fecha_adquisicion;
     }
 
     return await this.plantaRepository.save(planta);

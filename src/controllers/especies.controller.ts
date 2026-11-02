@@ -1,6 +1,12 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, Query } from '@nestjs/common';
+import {
+  Controller, Get, Post, Body, Param,
+  Put, Delete, Query, ParseIntPipe,
+} from '@nestjs/common';
 import { EspeciesService } from '../services/especies.service';
-import { CrearEspecieDto } from '../dto/crear-especie.dto';
+import {
+  CrearEspecieDto,
+  ActualizarEspecieDto,
+} from '../dto/crear-especie.dto';
 
 @Controller('especies')
 export class EspeciesController {
@@ -20,20 +26,20 @@ export class EspeciesController {
   }
 
   @Get(':id')
-  async obtenerPorId(@Param('id') id: number) {
-    return await this.especiesService.obtenerPorId(Number(id));
+  async obtenerPorId(@Param('id', ParseIntPipe) id: number) {
+    return await this.especiesService.obtenerPorId(id);
   }
 
   @Put(':id')
   async actualizar(
-    @Param('id') id: number,
-    @Body() actualizarDto: Partial<CrearEspecieDto>,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() actualizarDto: ActualizarEspecieDto,
   ) {
-    return await this.especiesService.actualizar(Number(id), actualizarDto);
+    return await this.especiesService.actualizar(id, actualizarDto);
   }
 
   @Delete(':id')
-  async eliminar(@Param('id') id: number) {
-    return await this.especiesService.eliminar(Number(id));
+  async eliminar(@Param('id', ParseIntPipe) id: number) {
+    return await this.especiesService.eliminar(id);
   }
 }
