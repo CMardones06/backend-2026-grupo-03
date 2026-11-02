@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RegistroRiego } from '../domain/entities/registro-riego.entity';
@@ -26,7 +30,31 @@ export class RiegosService {
       });
     }
 
-    const nuevoRegistro = this.registroRiegoRepository.create(crearDto);
+    const estadoSalud = String(plantaExiste.estado_salud || '').toUpperCase();
+    if (estadoSalud === 'MUERTO' || estadoSalud === 'MUERTA') {
+      throw new BadRequestException({
+        code: 'CANNOT_WATER_DEAD_PLANT',
+        message: 'No se puede registrar un riego para una planta en estado muerta',
+      });
+    }
+
+    const fechaRiego = crearDto.fecha_riego
+      ? new Date(crearDto.fecha_riego)
+      : new Date();
+
+    if (fechaRiego > new Date()) {
+      throw new BadRequestException({
+        code: 'INVALID_RIEGO_DATE',
+        message: 'La fecha de riego no puede ser posterior a la fecha y hora actual',
+      });
+    }
+
+    const nuevoRegistro = this.registroRiegoRepository.create({
+      ...crearDto,
+      planta: plantaExiste,
+      fecha_riego: fechaRiego as any,
+    });
+
     return await this.registroRiegoRepository.save(nuevoRegistro);
   }
 
@@ -68,7 +96,10 @@ export class RiegosService {
     return registro;
   }
 
-  async actualizar(id: number, actualizarDto: Partial<CrearRiegoDto>): Promise<RegistroRiego> {
+  async actualizar(
+    id: number,
+    actualizarDto: Partial<CrearRiegoDto>,
+  ): Promise<RegistroRiego> {
     const registro = await this.obtenerPorId(id);
 
     if (actualizarDto.planta_id) {
@@ -81,15 +112,36 @@ export class RiegosService {
           message: `La planta con id ${actualizarDto.planta_id} no existe`,
         });
       }
+
+       //Regla de Negocio al actualizar: Prohibición de regar planta muerta
+      const estadoSalud = String(plantaExiste.estado_salud || '').toUpperCase();
+      if (estadoSalud === 'MUERTO' || estadoSalud === 'MUERTA') {
+        throw new BadRequestException({
+          code: 'CANNOT_WATER_DEAD_PLANT',
+          message: 'No se puede asociar el riego a una planta en estado muerta',
+        });
+      }
     }
 
-    this.registroRiegoRepository.merge(registro, actualizarDto);
+    if (actualizarDto.fecha_riego) {
+      const fechaRiego = new Date(actualizarDto.fecha_riego);
+      if (fechaRiego > new Date()) {
+        throw new BadRequestException({
+          code: 'INVALID_RIEGO_DATE',
+          message: 'La fecha de riego no puede ser posterior a la fecha y hora actual',
+        });
+      }
+    }
+
+    this.registroRiegoRepository.merge(registro, actualizarDto as any);
     return await this.registroRiegoRepository.save(registro);
   }
 
   async eliminar(id: number): Promise<{ message: string }> {
     const registro = await this.obtenerPorId(id);
     await this.registroRiegoRepository.remove(registro);
-    return { message: `El registro de riego con id ${id} ha sido eliminado exitosamente` };
+    return {
+      message: `El registro de riego con id ${id} ha sido eliminado exitosamente`,
+    };
   }
 }

@@ -1,7 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Planta } from '../domain/entities/planta.entity';
+import { Especie } from '../domain/entities/especie.entity';
+import { Usuario } from '../domain/entities/usuario.entity';
 import { CrearPlantaDto } from '../dto/crear-planta.dto';
 
 @Injectable()
@@ -9,14 +11,43 @@ export class PlantasService {
   constructor(
     @InjectRepository(Planta)
     private readonly plantaRepository: Repository<Planta>,
+    @InjectRepository(Especie)
+    private readonly especieRepository: Repository<Especie>,
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
   ) {}
 
   async crear(crearPlantaDto: CrearPlantaDto): Promise<Planta> {
-    const nuevaPlanta = this.plantaRepository.create({
-      ...crearPlantaDto,
-      estado_salud: crearPlantaDto.estado_salud || 'Saludable',
-      fecha_adquisicion: new Date(crearPlantaDto.fecha_adquisicion),
+   
+    const especie = await this.especieRepository.findOne({
+      where: { id: Number(crearPlantaDto.especie_id) },
     });
+    if (!especie) {
+      throw new NotFoundException({
+        code: 'ESPECIE_NO_ENCONTRADA',
+        message: `La especie con ID ${crearPlantaDto.especie_id} no existe`,
+      });
+    }
+
+    const usuario = await this.usuarioRepository.findOne({
+      where: { id: Number(crearPlantaDto.usuario_id) },
+    });
+    if (!usuario) {
+      throw new NotFoundException({
+        code: 'USUARIO_NO_ENCONTRADO',
+        message: `El usuario con ID ${crearPlantaDto.usuario_id} no existe`,
+      });
+    }
+
+    const nuevaPlanta = this.plantaRepository.create({
+      apodo: crearPlantaDto.apodo,
+      ubicacion: crearPlantaDto.ubicacion,
+      estado_salud: crearPlantaDto.estado_salud || ('Saludable' as any),
+      fecha_adquisicion: new Date(crearPlantaDto.fecha_adquisicion),
+      especie,
+      usuario,
+    });
+
     return await this.plantaRepository.save(nuevaPlanta);
   }
 
@@ -61,14 +92,48 @@ export class PlantasService {
     return planta;
   }
 
-  async actualizar(id: number, actualizarDto: Partial<CrearPlantaDto>): Promise<Planta> {
+  async actualizar(
+    id: number,
+    actualizarDto: Partial<CrearPlantaDto>,
+  ): Promise<Planta> {
     const planta = await this.obtenerPorId(id);
 
-    if (actualizarDto.fecha_adquisicion) {
-      actualizarDto.fecha_adquisicion = new Date(actualizarDto.fecha_adquisicion) as any;
+    
+    if (actualizarDto.especie_id) {
+      const especie = await this.especieRepository.findOne({
+        where: { id: Number(actualizarDto.especie_id) },
+      });
+      if (!especie) {
+        throw new NotFoundException({
+          code: 'ESPECIE_NO_ENCONTRADA',
+          message: `La especie con ID ${actualizarDto.especie_id} no existe`,
+        });
+      }
+      planta.especie = especie;
     }
 
-    this.plantaRepository.merge(planta, actualizarDto);
+    // Actualización de la relación Usuario (Punto 5)
+    if (actualizarDto.usuario_id) {
+      const usuario = await this.usuarioRepository.findOne({
+        where: { id: Number(actualizarDto.usuario_id) },
+      });
+      if (!usuario) {
+        throw new NotFoundException({
+          code: 'USUARIO_NO_ENCONTRADO',
+          message: `El usuario con ID ${actualizarDto.usuario_id} no existe`,
+        });
+      }
+      planta.usuario = usuario;
+    }
+
+    if (actualizarDto.apodo) planta.apodo = actualizarDto.apodo;
+    if (actualizarDto.ubicacion) planta.ubicacion = actualizarDto.ubicacion;
+    if (actualizarDto.estado_salud)
+      planta.estado_salud = actualizarDto.estado_salud;
+    if (actualizarDto.fecha_adquisicion) {
+      planta.fecha_adquisicion = new Date(actualizarDto.fecha_adquisicion);
+    }
+
     return await this.plantaRepository.save(planta);
   }
 

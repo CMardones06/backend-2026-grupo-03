@@ -1,45 +1,63 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+} from 'typeorm';
 import { Especie } from './especie.entity';
-import { Usuario } from './usuario.entity';
 import { RegistroRiego } from './registro-riego.entity';
+import { Usuario } from './usuario.entity';
 
 export enum EstadoSalud {
+  EXCELENTE = 'Excelente',
   SALUDABLE = 'Saludable',
-  REGULAR = 'Regular',
-  CRITICO = 'Critico',
-  MUERTO = 'Muerto',
+  ENFERMA = 'Enferma',
+  CRITICA = 'Crítica',
+  MUERTA = 'Muerta',
 }
+
 @Entity('plantas')
 export class Planta {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 100 })
-  apodo: string;
+  @Column({ length: 100 })
+  nombre: string;
 
-  @Column({ type: 'date' })
-  fecha_adquisicion: Date;
-
-  @Column({ type: 'varchar', length: 50 })
+  @Column({ length: 50 })
   ubicacion: string;
 
-  @Column({ type: 'varchar', length: 30, default: 'Saludable' })
+  @Column({ length: 30, default: EstadoSalud.SALUDABLE })
   estado_salud: string;
 
-  @Column({ type: 'int' })
-  especie_id: number;
+  @Column({ type: 'date', nullable: true })
+  fecha_ingreso?: Date;
 
-  @ManyToOne(() => Especie)
+  @Column({ nullable: true })
+  especie_id?: number;
+
+  @Column({ nullable: true })
+  apodo?: string;
+
+  @Column({ type: 'date', nullable: true })
+  fecha_adquisicion?: Date;
+
+  @Column({ nullable: true })
+  usuario_id?: number;
+
+  @ManyToOne(() => Especie, (especie: Especie) => especie.plantas, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'especie_id' })
-  especie: Especie;
+  especie?: Especie;
 
-  @Column({ type: 'int' })
-  usuario_id: number;
-
-  @ManyToOne(() => Usuario, (usuario: Usuario) => usuario.plantas, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Usuario, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'usuario_id' })
-  usuario: Usuario;
+  usuario?: Usuario;
 
-  @OneToMany(() => RegistroRiego, (riego) => riego.planta)
+  @OneToMany(() => RegistroRiego, (riego: RegistroRiego) => riego.planta)
   riegos: RegistroRiego[];
 }

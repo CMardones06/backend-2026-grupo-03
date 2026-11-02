@@ -16,16 +16,29 @@ export class HttpErrorFilter implements ExceptionFilter {
       status = exception.getStatus();
       const res: any = exception.getResponse();
       
+      const getDefaultCode = (statusCode: number) => {
+        switch (statusCode) {
+          case HttpStatus.NOT_FOUND:
+            return 'RESOURCE_NOT_FOUND';
+          case HttpStatus.CONFLICT:
+            return 'CONFLICT_ERROR';
+          case HttpStatus.UNPROCESSABLE_ENTITY:
+            return 'UNPROCESSABLE_ENTITY';
+          default:
+            return 'BAD_REQUEST';
+        }
+      };
+
       if (Array.isArray(res.message)) {
         code = 'VALIDATION_ERROR';
         message = 'Error en la validación de los datos enviados';
         details = res.message;
       } else if (typeof res === 'object' && res !== null) {
-        code = res.code || res.error || (status === 404 ? 'RESOURCE_NOT_FOUND' : 'BAD_REQUEST');
+        code = res.code || res.error || getDefaultCode(status);
         message = res.message || exception.message;
         details = res.details || [];
       } else {
-        code = status === 404 ? 'RESOURCE_NOT_FOUND' : 'BAD_REQUEST';
+        code = getDefaultCode(status);
         message = typeof res === 'string' ? res : exception.message;
       }
     } else if (exception instanceof Error) {
