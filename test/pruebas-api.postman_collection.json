@@ -1,0 +1,296 @@
+{
+    "info": {
+        "_postman_id": "defd8263-369f-4b1d-871c-49a7323005b6",
+        "name": "Pruebas API Riego",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "description": ""
+    },
+    "item": [
+        {
+            "name": "01 - Crear usuario",
+            "request": {
+                "method": "POST",
+                "url": {
+                    "raw": "http://localhost:3001/usuarios",
+                    "path": [
+                        "usuarios"
+                    ],
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3001"
+                },
+                "body": {
+                    "mode": "raw",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    },
+                    "raw": "{\r\n  \"nombre\": \"Usuario QA\",\r\n  \"email\": \"qa.crud.01@example.com\",\r\n  \"rol\": \"user\",\r\n  \"activo\": true\r\n}"
+                }
+            }
+        },
+        {
+            "name": "02 - Consultar usuario creado",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "http://localhost:3001/usuarios/4",
+                    "path": [
+                        "usuarios",
+                        "4"
+                    ],
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3001"
+                }
+            }
+        },
+        {
+            "name": "03 - Correo duplicado",
+            "request": {
+                "method": "POST",
+                "url": {
+                    "raw": "http://localhost:3001/usuarios",
+                    "path": [
+                        "usuarios"
+                    ],
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3001"
+                },
+                "body": {
+                    "mode": "raw",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    },
+                    "raw": "{\r\n  \"nombre\": \"Usuario Duplicado\",\r\n  \"email\": \"qa.crud.01@example.com\",\r\n  \"rol\": \"user\"\r\n}"
+                }
+            }
+        },
+        {
+            "name": "04 - Actualizacion invalida",
+            "request": {
+                "method": "PUT",
+                "url": {
+                    "raw": "http://localhost:3001/usuarios/4",
+                    "path": [
+                        "usuarios",
+                        "4"
+                    ],
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3001"
+                },
+                "body": {
+                    "mode": "raw",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    },
+                    "raw": "{\n  \"email\": \"correo-invalido\"\n}\n"
+                }
+            }
+        },
+        {
+            "name": "05 - Actualizacion valida",
+            "request": {
+                "method": "PUT",
+                "url": {
+                    "raw": "http://localhost:3001/usuarios/4",
+                    "path": [
+                        "usuarios",
+                        "4"
+                    ],
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3001"
+                },
+                "body": {
+                    "mode": "raw",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    },
+                    "raw": "{\n  \"nombre\": \"Usuario QA Actualizado\"\n}"
+                }
+            }
+        },
+        {
+            "name": "06 - Usuario inexistente",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "http://localhost:3001/usuarios/999999",
+                    "path": [
+                        "usuarios",
+                        "999999"
+                    ],
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3001"
+                }
+            }
+        },
+        {
+            "name": "07 - ID invalido",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "http://localhost:3001/usuarios/abc",
+                    "path": [
+                        "usuarios",
+                        "abc"
+                    ],
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3001"
+                }
+            }
+        },
+        {
+            "name": "08 - Filtro orden y paginacion",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "http://localhost:3001/usuarios?rol=user&ordenar_por=nombre&direccion=asc&pagina=1&limite=1",
+                    "query": [
+                        {
+                            "key": "rol",
+                            "value": "user"
+                        },
+                        {
+                            "key": "ordenar_por",
+                            "value": "nombre"
+                        },
+                        {
+                            "key": "direccion",
+                            "value": "asc"
+                        },
+                        {
+                            "key": "pagina",
+                            "value": "1"
+                        },
+                        {
+                            "key": "limite",
+                            "value": "1"
+                        }
+                    ],
+                    "variable": [],
+                    "path": [
+                        "usuarios"
+                    ],
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3001"
+                }
+            }
+        },
+        {
+            "name": "09 - Pagina invalida",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "http://localhost:3001/usuarios?pagina=0",
+                    "query": [
+                        {
+                            "key": "pagina",
+                            "value": "0"
+                        }
+                    ],
+                    "variable": [],
+                    "path": [
+                        "usuarios"
+                    ],
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3001"
+                }
+            }
+        },
+        {
+            "name": "10 - Riego con fecha futura",
+            "request": {
+                "method": "POST",
+                "url": {
+                    "raw": "http://localhost:3001/riegos",
+                    "path": [
+                        "riegos"
+                    ],
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3001"
+                },
+                "body": {
+                    "mode": "raw",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    },
+                    "raw": "{\r\n  \"planta_id\": 1,\r\n  \"fecha_riego\": \"2099-01-01T12:00:00Z\",\r\n  \"cantidad_ml\": 100,\r\n  \"observaciones\": \"Prueba de fecha futura\"\r\n}"
+                }
+            }
+        },
+        {
+            "name": "11 - Eliminar usuario QA",
+            "request": {
+                "method": "DELETE",
+                "url": {
+                    "raw": "http://localhost:3001/usuarios/4",
+                    "path": [
+                        "usuarios",
+                        "4"
+                    ],
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3001"
+                }
+            }
+        },
+        {
+            "name": "12 - Confirmar eliminacion",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "http://localhost:3001/usuarios/4",
+                    "path": [
+                        "usuarios",
+                        "4"
+                    ],
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3001"
+                }
+            }
+        }
+    ]
+}

@@ -66,3 +66,16 @@ export class UsuariosPaginadosRespuestaDto {
   })
   total_paginas: number;
 }
+
+export class UsuarioDetalleRespuestaDto extends UsuarioRespuestaDto {
+  @ApiProperty({
+    description: 'Plantas asociadas al usuario',
+    type: 'array',
+    items: {
+      type: 'object',
+      additionalProperties: true,
+    },
+    example: [],
+  })
+  plantas: Record<string, unknown>[];
+}
