@@ -289,6 +289,39 @@ El archivo `.http` utiliza una referencia a la respuesta de creación para obten
 
 Las solicitudes POST y PUT que envían JSON utilizan `Content-Type: application/json`.
 
+## Resultados de pruebas
+
+Verificación realizada el 2 de noviembre de 2026 sobre
+`http://localhost:3001`.
+
+| Caso | Solicitud GET | Resultado esperado | Resultado obtenido |
+|---|---|---|---|
+| Usuario inexistente | `/usuarios/999999` | 404 y error de recurso inexistente | 404, código `USUARIO_NO_ENCONTRADO` |
+| Identificador inválido | `/usuarios/abc` | 400 y rechazo del identificador | 400, mensaje `Validation failed (numeric string is expected)` |
+| Página inválida | `/usuarios?pagina=0` | 422 y error de validación | 422, código `VALIDATION_ERROR`, detalle `pagina must not be less than 1` |
+| Filtro, orden y paginación | `/usuarios?rol=user&ordenar_por=nombre&direccion=asc&pagina=1&limite=1` | 200, usuarios de rol user ordenados por nombre y máximo un resultado | 200, Juan Pérez, total 2, página 1, límite 1 y total de páginas 2 |
+
+Los cuatro casos coincidieron con los resultados esperados.
+Los resultados del listado dependen de los datos presentes en la base.
+
+### Creación, actualización, reglas de negocio y eliminación
+
+Pruebas realizadas con Thunder Client el 2 de noviembre de 2026.
+
+| Caso | Solicitud y entrada | Resultado esperado | Resultado obtenido |
+|---|---|---|---|
+| Crear usuario | POST `/usuarios`, nombre `Usuario Evidencia`, email `evidencia.crud.02@example.com`, rol `user`, activo `true` | 201 y usuario con ID generado | 201 Created, usuario con ID 5 y los datos enviados |
+| Rechazar correo duplicado | POST `/usuarios`, nombre `Usuario Duplicado`, mismo email, rol `user`, activo `true` | 409 y código `EMAIL_ALREADY_EXISTS` | 409 Conflict y código `EMAIL_ALREADY_EXISTS` |
+| Actualizar usuario | PUT `/usuarios/5`, cuerpo `{"nombre":"Usuario Evidencia Actualizado"}` | 200, nombre actualizado y demás datos conservados | 200 OK, nombre actualizado; mismo ID, email, rol y activo |
+| Rechazar riego futuro | POST `/riegos`, planta_id `1`, fecha_riego `2099-01-01T12:00:00Z`, cantidad_ml `100`, observaciones `Prueba de fecha futura` | 400 y código `INVALID_RIEGO_DATE` | 400 Bad Request y código `INVALID_RIEGO_DATE` |
+| Eliminar usuario | DELETE `/usuarios/5`, sin cuerpo | 200 y mensaje de eliminación | 200 OK, mensaje de eliminación del usuario 5 |
+| Confirmar eliminación | GET `/usuarios/5` | 404 y código `USUARIO_NO_ENCONTRADO` | 404 Not Found y código `USUARIO_NO_ENCONTRADO` |
+
+Los seis casos coincidieron con los resultados esperados.
+El ID 5 corresponde a esta ejecución; al repetir las pruebas debe
+utilizarse el ID devuelto por la creación. La prueba de riego requiere
+que exista la planta 1 y que su estado permita registrar riegos.
+
 ## Integrantes
 
 - Josefa Ines Duarte Inostroza.
