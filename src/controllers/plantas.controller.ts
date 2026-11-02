@@ -14,6 +14,7 @@ import {
   CrearPlantaDto,
   ActualizarPlantaDto,
 } from '../dto/crear-planta.dto';
+import { PaginacionDto } from '../dto/paginacion.dto';
 
 @Controller('plantas')
 export class PlantasController {
@@ -25,11 +26,11 @@ export class PlantasController {
   }
 
   @Get()
-  async obtenerTodas(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-  ) {
-    return await this.plantasService.obtenerTodas(page, limit);
+  async obtenerTodas(@Query() consulta: PaginacionDto) {
+    return await this.plantasService.obtenerTodas(
+      consulta.page,
+      consulta.limit,
+    );
   }
 
   @Get(':id')

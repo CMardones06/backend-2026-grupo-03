@@ -7,6 +7,7 @@ import {
   CrearEspecieDto,
   ActualizarEspecieDto,
 } from '../dto/crear-especie.dto';
+import { PaginacionDto } from '../dto/paginacion.dto';
 
 @Controller('especies')
 export class EspeciesController {
@@ -18,11 +19,11 @@ export class EspeciesController {
   }
 
   @Get()
-  async obtenerTodas(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-  ) {
-    return await this.especiesService.obtenerTodas(page, limit);
+  async obtenerTodas(@Query() consulta: PaginacionDto) {
+    return await this.especiesService.obtenerTodas(
+      consulta.page,
+      consulta.limit,
+    );
   }
 
   @Get(':id')

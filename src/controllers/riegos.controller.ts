@@ -14,6 +14,7 @@ import {
   CrearRiegoDto,
   ActualizarRiegoDto,
 } from '../dto/crear-riego.dto';
+import { PaginacionDto } from '../dto/paginacion.dto';
 
 @Controller('riegos')
 export class RiegosController {
@@ -25,11 +26,11 @@ export class RiegosController {
   }
 
   @Get()
-  async obtenerTodos(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-  ) {
-    return await this.riegosService.obtenerTodos(page, limit);
+  async obtenerTodos(@Query() consulta: PaginacionDto) {
+    return await this.riegosService.obtenerTodos(
+      consulta.page,
+      consulta.limit,
+    );
   }
 
   @Get(':id')

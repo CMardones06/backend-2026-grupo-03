@@ -57,20 +57,23 @@ async function runSeeder() {
   // 4. Crear Plantas (según el esquema de la migración)
   const planta1 = await plantaRepo.save({
     nombre: 'Monstera de la Sala',
+    apodo: 'Mi monstera',
     ubicacion: 'Living',
     estado_salud: 'Excelente',
-    fecha_ingreso: new Date(),
+    fecha_adquisicion: '2026-11-01',
     especie_id: especie1.id,
-  } as any);
+    usuario_id: usuario1.id,
+  });
 
   const planta2 = await plantaRepo.save({
     nombre: 'Mini Suculenta',
+    apodo: 'Mi suculenta',
     ubicacion: 'Escritorio',
     estado_salud: 'Saludable',
-    fecha_ingreso: new Date(),
+    fecha_adquisicion: '2026-11-01',
     especie_id: especie2.id,
-  } as any);
-
+    usuario_id: usuario2.id,
+  });
   // 5. Crear Registros de Riego
   await riegoRepo.save({
     planta_id: planta1.id,
