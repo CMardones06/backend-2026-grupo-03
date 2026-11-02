@@ -8,7 +8,7 @@ export class RiegosController {
 
   @Post()
   async crear(@Body() crearRiegoDto: CrearRiegoDto) {
-    return await this.riegosService.crearRiego(crearRiegoDto);
+    return await this.riegosService.crear(crearRiegoDto);
   }
 
   @Get()

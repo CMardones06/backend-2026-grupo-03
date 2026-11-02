@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RegistroRiego } from '../domain/entities/registro-riego.entity';
@@ -9,60 +9,32 @@ import { CrearRiegoDto } from '../dto/crear-riego.dto';
 export class RiegosService {
   constructor(
     @InjectRepository(RegistroRiego)
-    private readonly riegoRepository: Repository<RegistroRiego>,
+    private readonly registroRiegoRepository: Repository<RegistroRiego>,
     @InjectRepository(Planta)
     private readonly plantaRepository: Repository<Planta>,
   ) {}
 
-  async crearRiego(crearRiegoDto: CrearRiegoDto): Promise<RegistroRiego> {
-    const fechaRiego = new Date(crearRiegoDto.fecha_riego);
-    const ahora = new Date();
-    if (fechaRiego > ahora) {
-      throw new BadRequestException({
-        error: {
-          code: 'INVALID_DATE',
-          message: 'No se puede registrar un riego con una fecha futura',
-          details: [],
-        },
-      });
-    }
-
-    const planta = await this.plantaRepository.findOne({
-      where: { id: crearRiegoDto.planta_id },
+  async crear(crearDto: CrearRiegoDto): Promise<RegistroRiego> {
+    const plantaExiste = await this.plantaRepository.findOne({
+      where: { id: Number(crearDto.planta_id) },
     });
 
-    if (!planta) {
+    if (!plantaExiste) {
       throw new NotFoundException({
-        error: {
-          code: 'RESOURCE_NOT_FOUND',
-          message: 'No existe una planta con el ID solicitado',
-          details: [],
-        },
+        code: 'PLANTA_NO_ENCONTRADA',
+        message: `No se puede registrar el riego porque la planta con id ${crearDto.planta_id} no existe`,
       });
     }
 
-    if (planta.estado_salud === 'Muerto' || planta.estado_salud === 'Muerta') {
-      throw new BadRequestException({
-        error: {
-          code: 'PLANTA_MUERTA',
-          message: 'No se puede registrar riegos para una planta muerta',
-        },
-      });
-    }
-
-    const nuevoRiego = this.riegoRepository.create({
-      ...crearRiegoDto,
-      fecha_riego: fechaRiego,
-    });
-
-    return await this.riegoRepository.save(nuevoRiego);
+    const nuevoRegistro = this.registroRiegoRepository.create(crearDto);
+    return await this.registroRiegoRepository.save(nuevoRegistro);
   }
 
   async obtenerTodos(page: number = 1, limit: number = 10) {
     const take = Number(limit) || 10;
     const skip = (Number(page) - 1) * take;
 
-    const [data, total] = await this.riegoRepository.findAndCount({
+    const [data, total] = await this.registroRiegoRepository.findAndCount({
       take: Number(take),
       skip: Number(skip),
       relations: {
@@ -79,42 +51,45 @@ export class RiegosService {
   }
 
   async obtenerPorId(id: number): Promise<RegistroRiego> {
-    const riego = await this.riegoRepository.findOne({
+    const registro = await this.registroRiegoRepository.findOne({
       where: { id: Number(id) },
       relations: {
         planta: true,
       },
     });
 
-    if (!riego) {
+    if (!registro) {
       throw new NotFoundException({
-        code: 'RIEGO_NO_ENCONTRADO',
-        message: `No existe un registro de riego con el id ${id}`,
+        code: 'REGISTRO_RIEGO_NO_ENCONTRADO',
+        message: `No existe un registro de riego con id ${id}`,
       });
     }
-    return riego;
+
+    return registro;
   }
 
   async actualizar(id: number, actualizarDto: Partial<CrearRiegoDto>): Promise<RegistroRiego> {
-    const riego = await this.obtenerPorId(id);
+    const registro = await this.obtenerPorId(id);
 
-    if (actualizarDto.fecha_riego) {
-      const fechaRiego = new Date(actualizarDto.fecha_riego);
-      if (fechaRiego > new Date()) {
-        throw new BadRequestException({
-          message: 'No se puede actualizar un riego con una fecha futura',
+    if (actualizarDto.planta_id) {
+      const plantaExiste = await this.plantaRepository.findOne({
+        where: { id: Number(actualizarDto.planta_id) },
+      });
+      if (!plantaExiste) {
+        throw new NotFoundException({
+          code: 'PLANTA_NO_ENCONTRADA',
+          message: `La planta con id ${actualizarDto.planta_id} no existe`,
         });
       }
-      actualizarDto.fecha_riego = fechaRiego as any;
     }
 
-    this.riegoRepository.merge(riego, actualizarDto);
-    return await this.riegoRepository.save(riego);
+    this.registroRiegoRepository.merge(registro, actualizarDto);
+    return await this.registroRiegoRepository.save(registro);
   }
 
   async eliminar(id: number): Promise<{ message: string }> {
-    const riego = await this.obtenerPorId(id);
-    await this.riegoRepository.remove(riego);
-    return { message: `El registro de riego con id ${id} ha sido eliminado` };
+    const registro = await this.obtenerPorId(id);
+    await this.registroRiegoRepository.remove(registro);
+    return { message: `El registro de riego con id ${id} ha sido eliminado exitosamente` };
   }
 }

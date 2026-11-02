@@ -1,15 +1,24 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Planta } from '../domain/entities/planta.entity';
 
 @Injectable()
 export class PlantaRepository {
-  private readonly plantas: Planta[] = [];
+  constructor(
+    @InjectRepository(Planta)
+    private readonly plantaOrmRepository: Repository<Planta>,
+  ) {}
 
-  findAll(): Planta[] {
-    return this.plantas;
+  async findAll(): Promise<Planta[]> {
+    return await this.plantaOrmRepository.find();
   }
 
-  save(planta: Planta): void {
-    this.plantas.push(planta);
+  async findById(id: number): Promise<Planta | null> {
+    return await this.plantaOrmRepository.findOne({ where: { id } });
+  }
+
+  async save(planta: Planta): Promise<Planta> {
+    return await this.plantaOrmRepository.save(planta);
   }
 }
