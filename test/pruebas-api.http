@@ -1,0 +1,83 @@
+@baseUrl = http://localhost:3001
+@emailPrueba = qa.crud.01@example.com
+
+### 1. Crear usuario: esperado 201
+# @name crearUsuario
+POST {{baseUrl}}/usuarios
+Content-Type: application/json
+
+{
+  "nombre": "Usuario QA",
+  "email": "{{emailPrueba}}",
+  "rol": "user",
+  "activo": true
+}
+
+### 2. Consultar el usuario creado: esperado 200
+GET {{baseUrl}}/usuarios/{{crearUsuario.response.body.id}}
+
+### 3. Correo duplicado: esperado 409
+POST {{baseUrl}}/usuarios
+Content-Type: application/json
+
+{
+  "nombre": "Usuario Duplicado",
+  "email": "{{emailPrueba}}",
+  "rol": "user"
+}
+
+### 4. Actualización inválida: esperado 422
+PUT {{baseUrl}}/usuarios/{{crearUsuario.response.body.id}}
+Content-Type: application/json
+
+{
+  "email": "correo-invalido"
+}
+
+### 5. Actualización válida: esperado 200
+PUT {{baseUrl}}/usuarios/{{crearUsuario.response.body.id}}
+Content-Type: application/json
+
+{
+  "nombre": "Usuario QA Actualizado"
+}
+
+### 6. Comprobar actualización: esperado 200
+# Debe conservar el correo original y el rol user.
+GET {{baseUrl}}/usuarios/{{crearUsuario.response.body.id}}
+
+### 7. Usuario inexistente: esperado 404
+GET {{baseUrl}}/usuarios/999999
+
+### 8. ID inválido: esperado 400
+GET {{baseUrl}}/usuarios/abc
+
+### 9. Filtro, ordenamiento y paginación: esperado 200
+# Todos los items deben tener rol user.
+# Debe devolver como máximo un item.
+GET {{baseUrl}}/usuarios?rol=user&ordenar_por=nombre&direccion=asc&pagina=1&limite=1
+
+### 10. Página inválida: esperado 422
+GET {{baseUrl}}/usuarios?pagina=0
+
+### 11. Regla de negocio: fecha de riego futura
+# Esperado 400 con code INVALID_RIEGO_DATE.
+# Requiere que exista la planta 1 y no esté muerta.
+POST {{baseUrl}}/riegos
+Content-Type: application/json
+
+{
+  "planta_id": 1,
+  "fecha_riego": "2099-01-01T12:00:00Z",
+  "cantidad_ml": 100,
+  "observaciones": "Prueba de fecha futura"
+}
+
+### 12. Paginación de plantas inválida: esperado 422
+GET {{baseUrl}}/plantas?page=0
+
+### 13. Eliminar el usuario de prueba: esperado 200
+DELETE {{baseUrl}}/usuarios/{{crearUsuario.response.body.id}}
+
+### 14. Confirmar eliminación: esperado 404
+GET {{baseUrl}}/usuarios/{{crearUsuario.response.body.id}}
