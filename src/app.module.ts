@@ -6,45 +6,37 @@ import { Planta } from './domain/entities/planta.entity';
 import { RegistroRiego } from './domain/entities/registro-riego.entity';
 import { Usuario } from './domain/entities/usuario.entity';
 
-import { PlantasController } from './controllers/plantas.controller';
 import { EspeciesController } from './controllers/especies.controller';
-import { RiegosController } from './controllers/riegos.controller';
-import { UsuariosController } from './controllers/usuarios.controller';
-
-import { PlantasService } from './services/plantas.service';
 import { EspeciesService } from './services/especies.service';
+import { PlantasController } from './controllers/plantas.controller';
+import { PlantasService } from './services/plantas.service';
+import { RiegosController } from './controllers/riegos.controller';
 import { RiegosService } from './services/riegos.service';
+import { UsuariosController } from './controllers/usuarios.controller';
 import { UsuariosService } from './services/usuarios.service';
-
-import { UsuarioRepository } from './repositories/usuario.repository';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'better-sqlite3',
-      database: process.env.DB_DATABASE || 'database.sqlite',
+      database: 'database.sqlite',
       entities: [Especie, Planta, RegistroRiego, Usuario],
       synchronize: true,
-    }),
-    TypeOrmModule.forFeature([
-      Especie,
-      Planta,
-      RegistroRiego,
-      Usuario,
-    ]),
+    }as any),
+
+    TypeOrmModule.forFeature([Especie, Planta, RegistroRiego, Usuario]),
   ],
   controllers: [
-    PlantasController,
     EspeciesController,
+    PlantasController,
     RiegosController,
     UsuariosController,
   ],
   providers: [
-    PlantasService,
     EspeciesService,
+    PlantasService,
     RiegosService,
     UsuariosService,
-    UsuarioRepository,
   ],
 })
 export class AppModule {}
