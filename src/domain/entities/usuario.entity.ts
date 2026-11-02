@@ -1,23 +1,21 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn ,OneToMany } from 'typeorm';
-import { Planta} from './planta.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Planta } from './planta.entity';
+
 @Entity('usuarios')
 export class Usuario {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ length: 100 })
   nombre: string;
 
-  @Column({ type: 'varchar', length: 150, unique: true })
+  @Column({ length: 150, unique: true })
   email: string;
 
-  @Column({ type: 'varchar', length: 50 })
+  @Column({ length: 50 })
   rol: string;
 
-  @CreateDateColumn({ type: 'date' })
-  fecha_registro: Date;
-
-  @Column({ type: 'boolean', default: true })
+  @Column({ default: true })
   activo: boolean;
 
   @OneToMany(() => Planta, (planta: Planta) => planta.usuario)

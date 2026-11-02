@@ -8,11 +8,11 @@ import { ConsultarUsuariosDto } from '../dto/consultar-usuarios.dto';
 
 @Injectable()
 export class UsuariosService {
-    constructor(
+  constructor(
     @InjectRepository(Usuario)
     private readonly usuarioRepository: Repository<Usuario>,
     private readonly usuariosConsultaRepository: UsuarioRepository,
-    ) {}
+  ) {}
 
   async crear(crearUsuarioDto: CrearUsuarioDto): Promise<Usuario> {
     const nuevoUsuario = this.usuarioRepository.create({
@@ -20,24 +20,23 @@ export class UsuariosService {
       email: crearUsuarioDto.email,
       rol: crearUsuarioDto.rol,
       activo: crearUsuarioDto.activo ?? true,
-      fecha_registro: new Date(),
     });
 
     return await this.usuarioRepository.save(nuevoUsuario);
   }
 
-    async obtenerTodos(consulta: ConsultarUsuariosDto) {
+  async obtenerTodos(consulta: ConsultarUsuariosDto) {
     const [items, total] =
-        await this.usuariosConsultaRepository.findAll(consulta);
+      await this.usuariosConsultaRepository.findAll(consulta);
 
     return {
-        items,
-        total,
-        pagina: consulta.pagina,
-        limite: consulta.limite,
-        total_paginas: Math.ceil(total / consulta.limite),
+      items,
+      total,
+      pagina: consulta.pagina,
+      limite: consulta.limite,
+      total_paginas: Math.ceil(total / consulta.limite),
     };
-    }
+  }
 
   async obtenerPorId(id: number): Promise<Usuario> {
     const usuario = await this.usuarioRepository.findOne({
