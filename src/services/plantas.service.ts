@@ -1,74 +1,57 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { EspeciesService } from './especies.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Planta } from '../domain/entities/planta.entity';
+import { CrearPlantaDto } from '../dto/crear-planta.dto';
 
 @Injectable()
 export class PlantasService {
-  private plantas: any[] = [];
+  constructor(
+    @InjectRepository(Planta)
+    private readonly plantaRepository: Repository<Planta>,
+  ) {}
 
-  constructor(private readonly especiesService: EspeciesService) {}
-
-  crearPlanta(datos: any) {
-    if (!this.especiesService.existe(datos.especie_id)) {
-      throw new BadRequestException({
-        code: 'ESPECIE_NO_ENCONTRADA',
-        message: `No existe una especie con id ${datos.especie_id}`,
-      });
-    }
-
-    const nuevaPlanta = {
-      id: this.plantas.length > 0 ? Math.max(...this.plantas.map((p) => p.id)) + 1 : 1,
-      ...datos,
-    };
-
-    this.plantas.push(nuevaPlanta);
-    return nuevaPlanta;
+  async crear(crearPlantaDto: CrearPlantaDto): Promise<Planta> {
+    const nuevaPlanta = this.plantaRepository.create({
+      ...crearPlantaDto,
+      estado_salud: crearPlantaDto.estado_salud || 'Saludable',
+      fecha_adquisicion: new Date(crearPlantaDto.fecha_adquisicion),
+    });
+    return await this.plantaRepository.save(nuevaPlanta);
   }
 
-  obtenerTodas(
-    estadoSalud?: string,
-    ordenarPor: string = 'id',
-    direccion: string = 'asc',
-    pagina: number = 1,
-    limite: number = 10,
-  ) {
-    if (!['asc', 'desc'].includes(direccion)) {
-      throw new BadRequestException({ code: 'DIRECCION_INVALIDA', message: 'direccion debe ser asc o desc' });
-    }
-    if (limite < 1 || limite > 100) {
-      throw new BadRequestException({ code: 'LIMITE_INVALIDO', message: 'limite debe estar entre 1 y 100' });
-    }
-    if (pagina < 1) {
-      throw new BadRequestException({ code: 'PAGINA_INVALIDA', message: 'pagina debe ser mayor o igual a 1' });
-    }
+  async obtenerTodas(page: number = 1, limit: number = 10) {
+    const take = Number(limit) || 10;
+    const skip = (Number(page) - 1) * take;
 
-    let resultado = [...this.plantas];
-
-    if (estadoSalud) {
-      resultado = resultado.filter((p) => p.estado_salud === estadoSalud);
-    }
-
-    resultado.sort((a, b) => {
-      if (a[ordenarPor] < b[ordenarPor]) return direccion === 'asc' ? -1 : 1;
-      if (a[ordenarPor] > b[ordenarPor]) return direccion === 'asc' ? 1 : -1;
-      return 0;
+    const [data, total] = await this.plantaRepository.findAndCount({
+      take: Number(take),
+      skip: Number(skip),
+      relations: {
+        especie: true,
+        usuario: true,
+        riegos: true,
+      },
     });
 
-    const total = resultado.length;
-    const totalPaginas = Math.ceil(total / limite) || 1;
-    const startIndex = (pagina - 1) * limite;
-    const datosPaginados = resultado.slice(startIndex, startIndex + limite);
-
     return {
-      items: datosPaginados,
+      data,
       total,
-      pagina,
-      limite,
-      total_paginas: totalPaginas,
+      page: Number(page),
+      lastPage: Math.ceil(total / take) || 1,
     };
   }
 
-  obtenerPorId(id: number) {
-    const planta = this.plantas.find((p) => Number(p.id) === Number(id));
+  async obtenerPorId(id: number): Promise<Planta> {
+    const planta = await this.plantaRepository.findOne({
+      where: { id: Number(id) },
+      relations: {
+        especie: true,
+        usuario: true,
+        riegos: true,
+      },
+    });
+
     if (!planta) {
       throw new NotFoundException({
         code: 'PLANTA_NO_ENCONTRADA',
@@ -78,35 +61,20 @@ export class PlantasService {
     return planta;
   }
 
-  actualizar(id: number, datos: any) {
-    const index = this.plantas.findIndex((p) => Number(p.id) === Number(id));
-    if (index === -1) {
-      throw new NotFoundException({
-        code: 'PLANTA_NO_ENCONTRADA',
-        message: `La planta con ID ${id} no existe`,
-      });
+  async actualizar(id: number, actualizarDto: Partial<CrearPlantaDto>): Promise<Planta> {
+    const planta = await this.obtenerPorId(id);
+
+    if (actualizarDto.fecha_adquisicion) {
+      actualizarDto.fecha_adquisicion = new Date(actualizarDto.fecha_adquisicion) as any;
     }
 
-    if (datos.especie_id && !this.especiesService.existe(datos.especie_id)) {
-      throw new BadRequestException({
-        code: 'ESPECIE_NO_ENCONTRADA',
-        message: `No existe una especie con id ${datos.especie_id}`,
-      });
-    }
-
-    this.plantas[index] = { ...this.plantas[index], ...datos };
-    return this.plantas[index];
+    this.plantaRepository.merge(planta, actualizarDto);
+    return await this.plantaRepository.save(planta);
   }
 
-  eliminar(id: number) {
-    const index = this.plantas.findIndex((p) => Number(p.id) === Number(id));
-    if (index === -1) {
-      throw new NotFoundException({
-        code: 'PLANTA_NO_ENCONTRADA',
-        message: `La planta con ID ${id} no existe`,
-      });
-    }
-
-    this.plantas.splice(index, 1);
+  async eliminar(id: number): Promise<{ message: string }> {
+    const planta = await this.obtenerPorId(id);
+    await this.plantaRepository.remove(planta);
+    return { message: `La planta con id ${id} ha sido eliminada exitosamente` };
   }
 }
