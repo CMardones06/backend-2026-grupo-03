@@ -7,6 +7,7 @@ import {
   IsString,
   Length,
   MaxLength,
+  MinLength,
 } from 'class-validator';
 import {
   ApiProperty,
@@ -28,19 +29,20 @@ export class CrearUsuarioDto {
   nombre: string;
 
   @ApiProperty({
-    description: 'Correo único del usuario; se guarda en minúsculas',
+    description: 'Correo electrónico del usuario',
     example: 'camila@example.com',
-    format: 'email',
-    maxLength: 150,
   })
-  @Transform(({ value }) =>
-    typeof value === 'string'
-      ? value.trim().toLowerCase()
-      : value,
-  )
   @IsEmail()
   @MaxLength(150)
   email: string;
+
+  @ApiProperty({
+    description: 'Contraseña del usuario',
+    example: '123456',
+  })
+  @IsString()
+  @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
+  password: string;
 
   @ApiProperty({
     description: 'Rol del usuario',
@@ -54,9 +56,8 @@ export class CrearUsuarioDto {
   rol: string;
 
   @ApiPropertyOptional({
-    description:
-      'Al crear se utiliza true si se omite; al actualizar se conserva el valor existente',
-    example: true,
+    description: 'Estado activo del usuario',
+    default: true,
   })
   @IsOptional()
   @IsBoolean()

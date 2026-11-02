@@ -38,7 +38,6 @@ export class UsuariosService {
       email,
       rol: crearUsuarioDto.rol,
       activo: crearUsuarioDto.activo ?? true,
-      fecha_registro: new Date(),
     });
 
     return await this.usuarioRepository.save(nuevoUsuario);

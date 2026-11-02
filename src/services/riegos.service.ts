@@ -113,7 +113,7 @@ export class RiegosService {
         });
       }
 
-       Regla de Negocio al actualizar: Prohibición de regar planta muerta
+       //Regla de Negocio al actualizar: Prohibición de regar planta muerta
       const estadoSalud = String(plantaExiste.estado_salud || '').toUpperCase();
       if (estadoSalud === 'MUERTO' || estadoSalud === 'MUERTA') {
         throw new BadRequestException({
