@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Param, Put, Delete, Query } from '@nestjs/common';
 import { UsuariosService } from '../services/usuarios.service';
 import { CrearUsuarioDto } from '../dto/crear-usuario.dto';
+import { ConsultarUsuariosDto } from '../dto/consultar-usuarios.dto';
 
 @Controller('usuarios')
 export class UsuariosController {
@@ -11,13 +12,12 @@ export class UsuariosController {
     return await this.usuariosService.crear(crearUsuarioDto);
   }
 
-  @Get()
-  async obtenerTodos(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-  ) {
-    return await this.usuariosService.obtenerTodos(page, limit);
-  }
+    @Get()
+    async obtenerTodos(
+    @Query() consulta: ConsultarUsuariosDto,
+    ) {
+    return await this.usuariosService.obtenerTodos(consulta);
+    }
 
   @Get(':id')
   async obtenerPorId(@Param('id') id: number) {

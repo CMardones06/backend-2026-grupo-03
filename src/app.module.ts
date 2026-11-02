@@ -14,6 +14,7 @@ import { RiegosController } from './controllers/riegos.controller';
 import { RiegosService } from './services/riegos.service';
 import { UsuariosController } from './controllers/usuarios.controller';
 import { UsuariosService } from './services/usuarios.service';
+import { UsuarioRepository } from './repositories/usuario.repository';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { UsuariosService } from './services/usuarios.service';
     PlantasService,
     RiegosService,
     UsuariosService,
+    UsuarioRepository,
   ],
 })
 export class AppModule {}

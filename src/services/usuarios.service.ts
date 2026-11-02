@@ -3,13 +3,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Usuario } from '../domain/entities/usuario.entity';
 import { CrearUsuarioDto } from '../dto/crear-usuario.dto';
+import { UsuarioRepository } from '../repositories/usuario.repository';
+import { ConsultarUsuariosDto } from '../dto/consultar-usuarios.dto';
 
 @Injectable()
 export class UsuariosService {
-  constructor(
+    constructor(
     @InjectRepository(Usuario)
     private readonly usuarioRepository: Repository<Usuario>,
-  ) {}
+    private readonly usuariosConsultaRepository: UsuarioRepository,
+    ) {}
 
   async crear(crearUsuarioDto: CrearUsuarioDto): Promise<Usuario> {
     const nuevoUsuario = this.usuarioRepository.create({
@@ -23,25 +26,18 @@ export class UsuariosService {
     return await this.usuarioRepository.save(nuevoUsuario);
   }
 
-  async obtenerTodos(page: number = 1, limit: number = 10) {
-    const take = Number(limit) || 10;
-    const skip = (Number(page) - 1) * take;
-
-    const [data, total] = await this.usuarioRepository.findAndCount({
-      take: Number(take),
-      skip: Number(skip),
-      relations: {
-        plantas: true,
-      },
-    });
+    async obtenerTodos(consulta: ConsultarUsuariosDto) {
+    const [items, total] =
+        await this.usuariosConsultaRepository.findAll(consulta);
 
     return {
-      data,
-      total,
-      page: Number(page),
-      lastPage: Math.ceil(total / take) || 1,
+        items,
+        total,
+        pagina: consulta.pagina,
+        limite: consulta.limite,
+        total_paginas: Math.ceil(total / consulta.limite),
     };
-  }
+    }
 
   async obtenerPorId(id: number): Promise<Usuario> {
     const usuario = await this.usuarioRepository.findOne({
