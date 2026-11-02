@@ -1,125 +1,201 @@
-# Backend - API de Alertas y Cronogramas de Riego (Grupo 03)
+# Backend — Gestión de plantas y registros de riego
 
-API REST desarrollada con **NestJS** y **TypeScript** para la **Entrega 2** del curso de desarrollo de backend (ICINF1108). Su propósito principal es gestionar el cuidado de plantas en interiores o huertos urbanos, controlando especies, inventario de plantas, usuarios y registros históricos de riego.
+Proyecto del Grupo 03 para el curso Desarrollo de Backend (ICINF1108).
 
----
-## Arquitectura del Sistema
+API REST desarrollada con NestJS y TypeScript para administrar usuarios, especies, plantas y registros de riego. Los datos se almacenan en SQLite mediante TypeORM.
 
-El proyecto sigue una arquitectura modular orientada a dominios utilizando **NestJS**, organizando la lógica de negocio por responsabilidades (controladores, servicios y validadores).
+## Tecnologías
 
-### Estructura de Carpetas
+- NestJS y TypeScript.
+- TypeORM y SQLite.
+- class-validator y class-transformer.
+- Swagger / OpenAPI.
+- Thunder Client para pruebas manuales.
+
+## Organización del código
+
 ```text
 src/
-├── controllers/      # Controladores de la API (Endpoints / Rutas)
-├── domain/           # Modelos del dominio y entidades en memoria
-├── dto/              # Objetos de transferencia de datos y validaciones
-├── repositories/     # Capa de persistencia y manejo de datos en memoria
-├── schemas/          # Esquemas y validaciones complementarias
-├── services/         # Lógica de negocio y reglas de la aplicación
-├── app.controller.ts # Controlador principal
-├── app.module.ts     # Módulo raíz de la aplicación
-├── app.service.ts    # Servicio raíz
-├── http-error.filter.ts # Filtro global de errores HTTP estructurados
-└── main.ts           # Punto de entrada y configuración de Swagger
+  controllers/       Rutas y recepción de solicitudes HTTP
+  domain/entities/   Entidades y relaciones de TypeORM
+  dto/               Validación de entradas y documentación de respuestas
+  repositories/      Consultas de persistencia específicas
+  services/          Reglas de negocio y operaciones sobre los datos
+  migrations/        Migraciones del esquema de la base de datos
+  app.module.ts      Registro de controladores, servicios y base de datos
+  data-source.ts     Configuración de TypeORM para ejecutar migraciones
+  http-error.filter.ts  Formato de errores HTTP
+  main.ts            Inicio del servidor y configuración de Swagger
+  seed.ts            Carga de datos de ejemplo
 ```
----
-## Tecnologías y Herramientas
 
-* **Framework:** [NestJS](https://nestjs.com/) (Node.js)
-* **Lenguaje:** TypeScript
-* **Validación de Datos:** `class-validator` & `class-transformer`
-* **Documentación:** [Swagger / OpenAPI](https://swagger.io/)
-* **Almacenamiento:** En memoria (listas/diccionarios, sin base de datos persistente para esta versión). <!-- editar -->
+Una solicitud llega al controlador, sus datos se validan mediante DTOs y el servicio aplica las reglas de negocio. Los servicios utilizan repositorios de TypeORM para consultar y modificar SQLite. El filtro global convierte las excepciones en respuestas JSON estructuradas.
 
----
+Las entidades contienen también los decoradores de persistencia de TypeORM.
 
-## Modelo del Dominio y Entidades
+## Entidades y relaciones
 
-El sistema administra cuatro entidades principales con sus respectivas relaciones:
+- **Usuario:** id, nombre, email, rol y activo.
+- **Especie:** id, nombre común, nombre científico, origen y descripción.
+- **Planta:** id, nombre, apodo, ubicación, estado de salud, fechas e identificadores de especie y usuario.
+- **Registro de riego:** id, fecha de riego, cantidad en mililitros, observaciones e identificador de planta.
 
-1. **Usuario:** `id`, `nombre`, `correo`, `nivel_experiencia`, `fecha_registro`.
-2. **Especie:** `id`, `nombre_comun`, `nombre_cientifico`, `dias_entre_riegos`, `requerimiento_luz`.
-3. **Planta (CRUD Completo):** `id`, `apodo`, `fecha_adquisicion`, `estado_salud`, `especie_id` *(Relación 1:N)*.
-4. **RegistroRiego:** `id`, `fecha_riego`, `cantidad_ml`, `tipo_fertilizante`, `planta_id` *(Relación 1:N)*.
+Relaciones:
 
----
+- Un usuario puede tener varias plantas.
+- Una especie puede estar asociada a varias plantas.
+- Una planta puede tener varios registros de riego.
 
-## Reglas de Negocio Principales
+La base de datos define eliminación en cascada de plantas al eliminar su especie y de registros de riego al eliminar su planta. Al eliminar un usuario, sus plantas permanecen con `usuario_id` en `null`.
 
-* **Fecha de Riego Válida:** Una planta no puede recibir un `RegistroRiego` con una fecha futura o mayor a la fecha actual de la solicitud.
-* **Estado de Salud:** No se pueden registrar nuevos riegos si la planta tiene el `estado_salud` en `"Muerto"`.
-* **Integridad Referencial:** Para registrar una planta, la especie referenciada en `especie_id` debe haber sido creada previamente.
+## Requisitos
 
----
+- Node.js y npm.
+- Git.
 
-## Contrato de la API (12 Endpoints)
+## Instalación
 
-### **Plantas (CRUD Completo)**
-* `POST /plantas` - Crear una nueva planta.
-* `GET /plantas` - Listar todas las plantas (soporta **filtrado, ordenamiento y paginación**).
-* `GET /plantas/{id}` - Obtener una planta específica por ID.
-* `PUT /plantas/{id}` - Actualizar los datos de una planta.
-* `DELETE /plantas/{id}` - Eliminar una planta.
+```powershell
+git clone https://github.com/CMardones06/backend-2026-grupo-03.git
+cd backend-2026-grupo-03
+git switch feature/dominio-y-persistencia
+npm install
+```
 
-### **Otras Entidades y Operaciones**
-* `POST /usuarios` - Registrar un nuevo usuario. (pendiente)
-* `GET /usuarios/{id}` - Obtener información de un usuario. (pendiente)
-* `POST /especies` - Registrar una nueva especie de planta.
-* `GET /especies` - Listar todas las especies disponibles.
-* `POST /plantas/{planta_id}/riegos` - Registrar un evento de riego para una planta.
-* `GET /plantas/{planta_id}/riegos` - Listar el historial de riegos de una planta.
-* `GET /usuarios/{id}/alertas-riego` - Calcular y listar riegos pendientes / alertas. (pendiente)
+## Configuración y base de datos
 
----
+La aplicación utiliza estas variables de entorno:
 
-## Instalación y Configuración Local
+| Variable | Valor predeterminado | Propósito |
+|---|---|---|
+| `PORT` | `3000` | Puerto del servidor |
+| `DB_DATABASE` | `database.sqlite` | Ruta del archivo SQLite |
 
-Sigue estos pasos para poner en marcha el proyecto en tu entorno de desarrollo:
+Ejemplo en PowerShell para utilizar una base de verificación independiente:
 
-1. **Clonar el repositorio:**
-   ```bash
-   git clone <url-del-repositorio>
-   cd backend-2026-grupo-03
-   ```
+```powershell
+$env:PORT = '3001'
+$env:DB_DATABASE = 'verificacion-seed.sqlite'
+npm run build
+npm run migration:run
+npm run seed
+npm run start:prod
+```
 
-2. **Instalar las dependencias:**
-   ```bash
-   # Si usas PowerShell y tienes restricciones de ejecución de scripts:
-   cmd /c npm install
-   
-   # O directamente en CMD / bash:
-   npm install
-   ```
+Las variables deben definirse en la misma terminal donde se ejecutan los comandos.
 
----
+Las migraciones crean el esquema de la base de datos. El seed elimina los datos existentes de las cuatro entidades y carga dos usuarios, dos especies, dos plantas y dos registros de riego. Ejecutarlo únicamente sobre una base destinada a datos de ejemplo.
 
-##  Ejecución del Servidor
+Para iniciar en modo desarrollo:
 
-* **Modo Desarrollo**:
-  ```bash
-  cmd /c npm run start:dev
-  ```
+```powershell
+npm run start:dev
+```
 
-* **Modo Producción**:
-  ```bash
-  cmd /c npm run start:prod
-  ```
+SQLite conserva los datos después de detener y reiniciar el servidor, siempre que se utilice el mismo archivo de base de datos.
 
----
+## Endpoints
 
-## Documentación Interactiva (Swagger)
+La API implementa 20 operaciones:
 
-Una vez que el servidor esté en ejecución (`http://localhost:3000`), puedes explorar y probar todos los endpoints, esquemas y DTOs ingresando a:
+| Recurso | Crear | Listar | Consultar | Actualizar | Eliminar |
+|---|---|---|---|---|---|
+| Usuarios | `POST /usuarios` | `GET /usuarios` | `GET /usuarios/{id}` | `PUT /usuarios/{id}` | `DELETE /usuarios/{id}` |
+| Especies | `POST /especies` | `GET /especies` | `GET /especies/{id}` | `PUT /especies/{id}` | `DELETE /especies/{id}` |
+| Plantas | `POST /plantas` | `GET /plantas` | `GET /plantas/{id}` | `PUT /plantas/{id}` | `DELETE /plantas/{id}` |
+| Riegos | `POST /riegos` | `GET /riegos` | `GET /riegos/{id}` | `PUT /riegos/{id}` | `DELETE /riegos/{id}` |
 
- **`http://localhost:3000/api`**
+Las actualizaciones mediante PUT permiten enviar solamente los campos que se desean modificar.
 
----
+### Paginación y filtros
 
-## Desarrolladores del Proyecto 
+Usuarios utiliza `pagina` y `limite`, permite filtrar por rol y ordenar los resultados:
 
-| Nombre | Rol  | GitHub |
-| :--- | :--- | :--- |
-|**Camila Mardones** | Coordinación y seguimiento / | [@usuario-github](https://github.com/CMardones06) |
-| **Josefa Duarte** | Calidad y Pruebas / | [@usuario-github](https://github.com/jjosefa) |
-| **María Henríquez** | Api y lógica / Dominio y Datos| [@usuario-github](https://github.com/maria-hc) |
-| **Keisy Epul** | Dominio y datos / Documentación e Integración | [@usuario-github](https://github.com/keiishiiEp) |
+```text
+GET /usuarios?rol=user&ordenar_por=nombre&direccion=asc&pagina=1&limite=1
+```
+
+Su respuesta contiene `items`, `total`, `pagina`, `limite` y `total_paginas`.
+
+Especies, plantas y riegos utilizan `page` y `limit`:
+
+```text
+GET /plantas?page=1&limit=10
+```
+
+Sus respuestas contienen `data`, `total`, `page` y `lastPage`.
+
+La página mínima es 1 y el límite permitido es de 1 a 100.
+
+## Validaciones y reglas de negocio
+
+- El correo de un usuario debe tener un formato válido y ser único.
+- El rol debe ser `admin` o `user`.
+- Los identificadores deben ser enteros.
+- Los DTOs validan campos obligatorios, tipos, longitudes, fechas y valores permitidos.
+- Las relaciones referenciadas deben existir.
+- La cantidad de riego debe ser un entero mayor que cero.
+- La fecha de riego no puede ser posterior a la fecha y hora actual.
+- No se pueden registrar nuevos riegos para una planta con estado `Muerta`.
+
+## Respuestas y errores
+
+- `200`: consulta, actualización o eliminación exitosa.
+- `201`: creación exitosa.
+- `400`: identificador con formato inválido o incumplimiento de determinadas reglas de negocio.
+- `404`: recurso inexistente.
+- `409`: conflicto por correo duplicado.
+- `422`: datos rechazados por las validaciones de entrada.
+
+Los errores utilizan esta estructura:
+
+```json
+{
+  "error": {
+    "code": "USUARIO_NO_ENCONTRADO",
+    "message": "No existe un usuario con el id 999999",
+    "details": []
+  }
+}
+```
+
+Las eliminaciones exitosas responden con estado 200 y un mensaje de confirmación.
+
+## Documentación Swagger
+
+Con el servidor iniciado:
+
+- Puerto predeterminado: http://localhost:3000/api
+- Configuración de verificación: http://localhost:3001/api
+
+Swagger documenta las operaciones, parámetros, cuerpos de entrada, ejemplos y respuestas.
+
+## Pruebas manuales
+
+Las solicitudes están guardadas en:
+
+- `test/pruebas-api.http`
+- `test/pruebas-api.postman_collection.json`
+
+La colección JSON fue exportada desde Thunder Client en formato Postman.
+
+Los casos incluyen creación, consulta, actualización, eliminación, correo duplicado, correo inválido, recurso inexistente, identificador inválido, paginación y fecha futura de riego.
+
+Para repetirlos:
+
+1. Iniciar el servidor en el puerto 3001 con una base de ejemplo preparada.
+2. Ejecutar las solicitudes en el orden indicado.
+3. En Thunder Client, utilizar el ID devuelto por la creación en las consultas, actualizaciones y eliminación del usuario QA.
+4. Si el correo de prueba ya existe por una ejecución incompleta, cambiarlo tanto en la solicitud de creación como en la prueba de duplicidad.
+5. Ejecutar la eliminación al final y comprobar que la consulta posterior devuelve 404.
+
+El archivo `.http` utiliza una referencia a la respuesta de creación para obtener el ID del usuario. Puede ejecutarse con la extensión REST Client de VS Code.
+
+Las solicitudes POST y PUT que envían JSON utilizan `Content-Type: application/json`.
+
+## Integrantes
+
+- Josefa Ines Duarte Inostroza.
+- Keisy Dayana Epul Landero.
+- Maria Rayen Henriquez Cayuqueo.
+- Camila Angelina Mardones Molina.
