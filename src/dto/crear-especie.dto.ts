@@ -30,5 +30,5 @@ export class CrearEspecieDto {
   @IsEnum(Luz_Requerida, {
     message: 'El requerimiento de luz debe ser: Directa, Indirecta, Sombra o Poca luz',
   })
-  requerimiento_luz: Luz_Requerida;
+  luz_req: Luz_Requerida;
 }

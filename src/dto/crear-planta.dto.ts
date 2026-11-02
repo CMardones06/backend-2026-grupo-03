@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsInt, MaxLength, IsDate, IsEnum, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, IsInt, MaxLength, IsDateString, IsEnum, IsOptional } from 'class-validator';
 import { EstadoSalud } from '../domain/entities/planta.entity';
 export class CrearPlantaDto {
   @IsString()
@@ -6,9 +6,11 @@ export class CrearPlantaDto {
   @MaxLength(100)
   apodo: string;
 
-  @IsDate()
+  @IsDateString({}, {
+    message: 'La fecha de adquisición debe ser una fecha válida en formato ISO',
+  })
   @IsNotEmpty()
-  fecha_adquisicion:Date;
+  fecha_adquisicion: string;
 
   @IsString()
   @IsNotEmpty()
