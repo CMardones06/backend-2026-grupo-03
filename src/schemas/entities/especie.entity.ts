@@ -23,12 +23,6 @@ export class Especie {
 
   @Column({ type: 'text', nullable: true })
   descripcion: string;
-
-  @Column({ type: 'int' })
-  frec_riego: number;
-
-  @Column({ type: 'varchar'})
-  luz_req: Luz_Requerida;
   
   @OneToMany(() => Planta, (planta) => planta.especie)
   plantas: Planta[];

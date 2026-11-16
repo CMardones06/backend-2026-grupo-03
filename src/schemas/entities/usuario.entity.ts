@@ -14,8 +14,6 @@ export class Usuario {
   @Column({ type: 'varchar', length: 50 })
   rol: string;
 
-  @CreateDateColumn({ type: 'date' })
-  fecha_registro: Date;
 
   @Column({ type: 'boolean', default: true })
   activo: boolean;

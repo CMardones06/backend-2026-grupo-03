@@ -1,12 +1,12 @@
 {
   "name": "backend-2026-grupo-03",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "version": "2.0.0",
+  "description": "API de Registro, cronograma y alertas de riego",
+  "author": "Grupo 3",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "seed": "ts-node src/seed.ts",
+    "seed": "ts-node src/seeders/seed.ts",
     "build": "nest build",
     "deploy": "nest deploy",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

@@ -119,7 +119,7 @@ Una vez que el servidor esté en ejecución (`http://localhost:3000`), puedes ex
 
 | Nombre | Rol  | GitHub |
 | :--- | :--- | :--- |
-|**Camila Mardones** | Coordinación y seguimiento / | [@usuario-github](https://github.com/CMardones06) |
-| **Josefa Duarte** | Calidad y Pruebas / | [@usuario-github](https://github.com/jjosefa) |
-| **María Henríquez** | Api y lógica / Dominio y Datos| [@usuario-github](https://github.com/maria-hc) |
+|**Camila Mardones** | Coordinación y seguimiento / Api y lógica| [@usuario-github](https://github.com/CMardones06) |
+| **Josefa Duarte** | Calidad y Pruebas / Api y lógica | [@usuario-github](https://github.com/jjosefa) |
+| **María Henríquez** | Api y lógica / Dominio y Datos | [@usuario-github](https://github.com/maria-hc) |
 | **Keisy Epul** | Dominio y datos / Documentación e Integración | [@usuario-github](https://github.com/keiishiiEp) |

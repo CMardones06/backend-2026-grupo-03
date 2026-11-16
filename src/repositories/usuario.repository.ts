@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsOrder } from 'typeorm';
-import { Usuario } from '../domain/entities/usuario.entity';
+import { Usuario } from '../schemas/entities/usuario.entity';
 
 type DatosUsuario = Pick<Usuario, 'nombre' | 'email' | 'rol'> & {
   activo?: boolean;
@@ -22,11 +22,8 @@ export class UsuarioRepository {
     private readonly repository: Repository<Usuario>,
   ) {}
 
-  findAll(
-    consulta: ConsultaUsuarios,
-  ): Promise<[Usuario[], number]> {
-    const direccion =
-      consulta.direccion === 'asc' ? 'ASC' : 'DESC';
+  findAll(consulta: ConsultaUsuarios): Promise<[Usuario[], number]> {
+    const direccion = consulta.direccion === 'asc' ? 'ASC' : 'DESC';
 
     const orden: FindOptionsOrder<Usuario> = {
       [consulta.ordenar_por]: direccion,
@@ -48,6 +45,13 @@ export class UsuarioRepository {
     return this.repository.findOneBy({ id });
   }
 
+  findByIdWithRelations(id: number): Promise<Usuario | null> {
+    return this.repository.findOne({
+      where: { id },
+      relations: { plantas: true },
+    });
+  }
+
   findByEmail(email: string): Promise<Usuario | null> {
     return this.repository.findOneBy({ email });
   }
@@ -57,17 +61,15 @@ export class UsuarioRepository {
       ...datos,
       activo: datos.activo ?? true,
     });
-
     return this.repository.save(usuario);
   }
 
-  update(usuario: Usuario, datos: DatosUsuario): Promise<Usuario> {
+  update(usuario: Usuario, datos: Partial<DatosUsuario>): Promise<Usuario> {
     this.repository.merge(usuario, datos);
-
     return this.repository.save(usuario);
   }
 
-  async delete(id: number): Promise<void> {
-    await this.repository.delete(id);
+  async remove(usuario: Usuario): Promise<void> {
+    await this.repository.remove(usuario);
   }
 }

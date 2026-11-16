@@ -1,55 +1,62 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Usuario } from '../domain/entities/usuario.entity';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { CrearUsuarioDto } from '../dto/crear-usuario.dto';
+import { UsuarioRepository } from '../repositories/usuario.repository';
+import { ConsultarUsuariosDto } from '../dto/consultar-usuarios.dto';
+import { UsuarioMapper } from '../mappers/usuario.mapper';
 
 @Injectable()
 export class UsuariosService {
-  constructor(
-    @InjectRepository(Usuario)
-    private readonly usuarioRepository: Repository<Usuario>,
-  ) {}
+  constructor(private readonly usuarioRepository: UsuarioRepository) {}
 
-  async crear(crearUsuarioDto: CrearUsuarioDto): Promise<Usuario> {
-    const nuevoUsuario = this.usuarioRepository.create({
+  async crear(crearUsuarioDto: CrearUsuarioDto) {
+    const email = crearUsuarioDto.email.trim().toLowerCase();
+
+    const existe = await this.usuarioRepository.findByEmail(email);
+    if (existe) {
+      throw new ConflictException({
+        code: 'EMAIL_ALREADY_EXISTS',
+        message: 'El correo electrónico ya se encuentra registrado',
+      });
+    }
+
+    const creado = await this.usuarioRepository.create({
       nombre: crearUsuarioDto.nombre,
-      email: crearUsuarioDto.email,
+      email,
       rol: crearUsuarioDto.rol,
       activo: crearUsuarioDto.activo ?? true,
-      fecha_registro: new Date(),
     });
 
-    return await this.usuarioRepository.save(nuevoUsuario);
+    return UsuarioMapper.toResponse(creado);
   }
 
-  async obtenerTodos(page: number = 1, limit: number = 10) {
-    const take = Number(limit) || 10;
-    const skip = (Number(page) - 1) * take;
-
-    const [data, total] = await this.usuarioRepository.findAndCount({
-      take: Number(take),
-      skip: Number(skip),
-      relations: {
-        plantas: true,
-      },
-    });
+  async obtenerTodos(consulta: ConsultarUsuariosDto) {
+    const [items, total] = await this.usuarioRepository.findAll({
+      busqueda: consulta.busqueda,
+      rol: consulta.rol,
+      activo: consulta.activo,
+      ordenar_por: consulta.ordenar_por ?? 'id',
+      direccion: consulta.direccion ?? 'ASC',
+      pagina: consulta.pagina ?? 1,
+      limite: consulta.limite ?? 10,
+    } as any); // <-- Forzamos el tipo aquí para evitar conflictos de TypeScript
 
     return {
-      data,
+      items: items.map((u) => UsuarioMapper.toResponse(u)),
       total,
-      page: Number(page),
-      lastPage: Math.ceil(total / take) || 1,
+      pagina: consulta.pagina ?? 1,
+      limite: consulta.limite ?? 10,
+      total_paginas: Math.ceil(total / (consulta.limite ?? 10)),
     };
   }
 
-  async obtenerPorId(id: number): Promise<Usuario> {
-    const usuario = await this.usuarioRepository.findOne({
-      where: { id: Number(id) },
-      relations: {
-        plantas: true,
-      },
-    });
+  async obtenerPorId(id: number) {
+    const usuario = await this.usuarioRepository.findByIdWithRelations(
+      Number(id),
+    );
 
     if (!usuario) {
       throw new NotFoundException({
@@ -57,19 +64,53 @@ export class UsuariosService {
         message: `No existe un usuario con el id ${id}`,
       });
     }
-    return usuario;
+    return UsuarioMapper.toDetailResponse(usuario);
   }
 
-  async actualizar(id: number, actualizarDto: Partial<CrearUsuarioDto>): Promise<Usuario> {
-    const usuario = await this.obtenerPorId(id);
+  async actualizar(id: number, actualizarDto: Partial<CrearUsuarioDto>) {
+    const usuario = await this.usuarioRepository.findByIdWithRelations(
+      Number(id),
+    );
 
-    this.usuarioRepository.merge(usuario, actualizarDto as any);
+    if (!usuario) {
+      throw new NotFoundException({
+        code: 'USUARIO_NO_ENCONTRADO',
+        message: `No existe un usuario con el id ${id}`,
+      });
+    }
 
-    return await this.usuarioRepository.save(usuario);
+    if (actualizarDto.email) {
+      const email = actualizarDto.email.trim().toLowerCase();
+      const existe = await this.usuarioRepository.findByEmail(email);
+
+      if (existe && existe.id !== Number(id)) {
+        throw new ConflictException({
+          code: 'EMAIL_ALREADY_EXISTS',
+          message: 'Ya existe otro usuario con ese correo electrónico',
+        });
+      }
+      actualizarDto.email = email;
+    }
+
+    const actualizado = await this.usuarioRepository.update(
+      usuario,
+      actualizarDto,
+    );
+    return UsuarioMapper.toDetailResponse(actualizado);
   }
 
   async eliminar(id: number): Promise<{ message: string }> {
-    const usuario = await this.obtenerPorId(id);
+    const usuario = await this.usuarioRepository.findByIdWithRelations(
+      Number(id),
+    );
+
+    if (!usuario) {
+      throw new NotFoundException({
+        code: 'USUARIO_NO_ENCONTRADO',
+        message: `No existe un usuario con el id ${id}`,
+      });
+    }
+
     await this.usuarioRepository.remove(usuario);
     return { message: `El usuario con id ${id} ha sido eliminado con éxito` };
   }
