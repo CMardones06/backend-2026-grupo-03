@@ -150,12 +150,21 @@ export class PlantasPaginadasRespuestaDto {
   @ApiProperty({ type: [PlantaRespuestaDto] })
   data: PlantaRespuestaDto[];
 
-  @ApiProperty({ example: 2 })
+  @ApiProperty({
+    description: 'Cantidad total de plantas',
+    example: 2,
+  })
   total: number;
 
-  @ApiProperty({ example: 1 })
+  @ApiProperty({
+    description: 'Página solicitada',
+    example: 1,
+  })
   page: number;
 
-  @ApiProperty({ example: 1 })
+  @ApiProperty({
+    description: 'Última página; el servicio devuelve 1 si no hay registros',
+    example: 1,
+  })
   lastPage: number;
 }
