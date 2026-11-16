@@ -1,11 +1,15 @@
 {
   "name": "backend-2026-grupo-03",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "version": "2.0.0",
+  "description": "API de Registro, cronograma y alertas de riego",
+  "author": "Grupo 3",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+<<<<<<< HEAD
+    "seed": "ts-node src/seeders/seed.ts",
+=======
+>>>>>>> ad1e37afbe0b6c37843f404f37d403d453f30139
     "build": "nest build",
     "start": "nest start",
     "start:dev": "nest start --watch",

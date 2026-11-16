@@ -159,6 +159,14 @@ npm install
 
 ## Configuración y base de datos
 
+<<<<<<< HEAD
+| Nombre | Rol  | GitHub |
+| :--- | :--- | :--- |
+|**Camila Mardones** | Coordinación y seguimiento / Api y lógica| [@usuario-github](https://github.com/CMardones06) |
+| **Josefa Duarte** | Calidad y Pruebas / Api y lógica | [@usuario-github](https://github.com/jjosefa) |
+| **María Henríquez** | Api y lógica / Dominio y Datos | [@usuario-github](https://github.com/maria-hc) |
+| **Keisy Epul** | Dominio y datos / Documentación e Integración | [@usuario-github](https://github.com/keiishiiEp) |
+=======
 La aplicación utiliza estas variables de entorno:
 
 | Variable | Valor predeterminado | Propósito |
@@ -327,3 +335,4 @@ que exista la planta 1 y que su estado permita registrar riegos.
 - Keisy Dayana Epul Landero.
 - Maria Rayen Henriquez Cayuqueo.
 - Camila Angelina Mardones Molina.
+>>>>>>> ad1e37afbe0b6c37843f404f37d403d453f30139

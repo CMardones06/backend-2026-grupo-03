@@ -1,54 +1,59 @@
-import { Transform } from 'class-transformer';
 import {
-  IsBoolean,
-  IsEmail,
-  IsIn,
-  IsOptional,
+  IsNotEmpty,
   IsString,
-  Length,
+  IsEmail,
+  IsOptional,
+  IsBoolean,
   MaxLength,
+  MinLength,
 } from 'class-validator';
 import {
   ApiProperty,
   ApiPropertyOptional,
   PartialType,
 } from '@nestjs/swagger';
+import {
+  UsuarioRespuestaDto,
+  UsuarioDetalleRespuestaDto,
+  UsuariosPaginadosRespuestaDto,
+} from './usuario-respuesta.dto';
 
 export class CrearUsuarioDto {
   @ApiProperty({
-    description: 'Nombre del usuario',
-    example: 'Camila Mardones',
-    minLength: 2,
+    description: 'Nombre completo del usuario',
+    example: 'Maria Paz',
+    minLength: 3,
     maxLength: 100,
   })
-  @Transform(({ value }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
   @IsString()
-  @Length(2, 100)
+  @IsNotEmpty()
+  @MinLength(3)
+  @MaxLength(100)
   nombre: string;
 
   @ApiProperty({
-    description: 'Correo electrónico del usuario',
-    example: 'camila@example.com',
+    description: 'Correo electrónico único del usuario',
+    example: 'maria@example.com',
+    maxLength: 150,
   })
-  @IsEmail()
+  @IsEmail({}, { message: 'El formato del correo electrónico no es válido' })
+  @IsNotEmpty()
   @MaxLength(150)
   email: string;
 
   @ApiProperty({
-    description: 'Rol del usuario',
-    example: 'user',
-    enum: ['admin', 'user'],
+    description: 'Rol del usuario dentro del sistema',
+    example: 'admin',
+    maxLength: 50,
   })
   @IsString()
-  @IsIn(['admin', 'user'], {
-    message: 'El rol debe ser admin o user',
-  })
+  @IsNotEmpty()
+  @MaxLength(50)
   rol: string;
 
   @ApiPropertyOptional({
-    description: 'Estado activo del usuario',
+    description: 'Indica si la cuenta del usuario está activa',
+    example: true,
     default: true,
   })
   @IsOptional()
@@ -57,3 +62,9 @@ export class CrearUsuarioDto {
 }
 
 export class ActualizarUsuarioDto extends PartialType(CrearUsuarioDto) {}
+
+export {
+  UsuarioRespuestaDto,
+  UsuarioDetalleRespuestaDto,
+  UsuariosPaginadosRespuestaDto,
+};

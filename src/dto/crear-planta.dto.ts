@@ -8,52 +8,76 @@ import {
   IsOptional,
   Min,
 } from 'class-validator';
-import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { EstadoSalud } from '../domain/entities/planta.entity';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  PartialType,
+} from '@nestjs/swagger';
+import { EstadoSalud } from '../schemas/entities/planta.entity';
 
 export class CrearPlantaDto {
-  @ApiProperty({ example: 'Helecho de interior' })
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(100)
-  nombre: string;
-
-  @ApiProperty({ example: 'Mi helecho' })
+  @ApiProperty({
+    description: 'Apodo o nombre personalizado asignado a la planta',
+    example: 'Monstera de la Sala',
+    maxLength: 100,
+  })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   apodo: string;
 
-  @ApiProperty({ example: '2026-11-01', format: 'date' })
-  @IsDateString({}, {
-    message: 'La fecha de adquisición debe ser una fecha válida en formato ISO',
+  @ApiProperty({
+    description: 'Fecha en la que se adquirió la planta (formato YYYY-MM-DD)',
+    example: '2026-11-01',
+    format: 'date',
   })
+  @IsDateString(
+    {},
+    {
+      message:
+        'La fecha de adquisición debe ser una fecha válida en formato ISO',
+    },
+  )
   @IsNotEmpty()
   fecha_adquisicion: string;
 
-  @ApiProperty({ example: 'Sala' })
+  @ApiProperty({
+    description: 'Lugar físico donde se encuentra la planta',
+    example: 'Living',
+    maxLength: 50,
+  })
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)
   ubicacion: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
+    description: 'Estado de salud actual de la planta',
     enum: EstadoSalud,
-    required: false,
     default: EstadoSalud.SALUDABLE,
+    example: EstadoSalud.SALUDABLE,
   })
   @IsOptional()
   @IsEnum(EstadoSalud, {
-    message: 'El estado debe ser Excelente, Saludable, Enferma, Crítica o Muerta',
+    message:
+      'El estado debe ser Excelente, Saludable, Enferma, Crítica o Muerta',
   })
   estado_salud?: EstadoSalud;
 
-  @ApiProperty({ example: 3, minimum: 1 })
+  @ApiProperty({
+    description: 'ID de la especie a la que pertenece la planta',
+    example: 1,
+    minimum: 1,
+  })
   @IsInt()
   @Min(1)
   especie_id: number;
 
-  @ApiProperty({ example: 3, minimum: 1 })
+  @ApiProperty({
+    description: 'ID del usuario dueño de la planta',
+    example: 1,
+    minimum: 1,
+  })
   @IsInt()
   @Min(1)
   usuario_id: number;
@@ -65,62 +89,45 @@ export class PlantaRespuestaDto {
   @ApiProperty({ example: 1 })
   id: number;
 
-  @ApiProperty({ example: 'Helecho de interior' })
-  nombre: string;
+  @ApiProperty({ example: 'Monstera de la Sala' })
+  apodo: string;
 
-  @ApiProperty({ example: 'Mi helecho', nullable: true })
-  apodo: string | null;
-
-  @ApiProperty({ example: 'Sala' })
+  @ApiProperty({ example: 'Living' })
   ubicacion: string;
 
-  @ApiProperty({
-    example: 'Saludable',
-    description: 'Estado de salud de la planta',
-  })
+  @ApiProperty({ enum: EstadoSalud, example: EstadoSalud.SALUDABLE })
   estado_salud: string;
 
-  @ApiProperty({
-    example: '2026-11-01',
-    format: 'date',
-    nullable: true,
-    required: false,
-  })
+  @ApiPropertyOptional({ example: '2026-11-01', nullable: true })
   fecha_ingreso?: string | null;
 
-  @ApiProperty({
-    example: '2026-11-01',
-    format: 'date',
-    nullable: true,
-  })
-  fecha_adquisicion: string | null;
+  @ApiPropertyOptional({ example: '2026-11-01', nullable: true })
+  fecha_adquisicion?: string | null;
 
-  @ApiProperty({ example: 1, nullable: true })
-  especie_id: number | null;
+  @ApiPropertyOptional({ example: 1, nullable: true })
+  especie_id?: number | null;
 
-  @ApiProperty({ example: 1, nullable: true })
-  usuario_id: number | null;
+  @ApiPropertyOptional({ example: 1, nullable: true })
+  usuario_id?: number | null;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: 'object',
-    additionalProperties: true,
     nullable: true,
-    description: 'Especie asociada',
+    additionalProperties: true,
     example: {
       id: 1,
       nombre_comun: 'Monstera',
       nombre_cientifico: 'Monstera deliciosa',
-      origen: 'América tropical',
-      descripcion: 'Planta de hojas grandes',
+      origen: 'América Tropical',
+      descripcion: 'Planta de hojas grandes y caladas',
     },
   })
-  especie: Record<string, unknown> | null;
+  especie?: Record<string, unknown> | null;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: 'object',
-    additionalProperties: true,
     nullable: true,
-    description: 'Usuario asociado',
+    additionalProperties: true,
     example: {
       id: 1,
       nombre: 'Maria Paz',
@@ -129,16 +136,11 @@ export class PlantaRespuestaDto {
       activo: true,
     },
   })
-  usuario: Record<string, unknown> | null;
+  usuario?: Record<string, unknown> | null;
 
-  @ApiProperty({
-    description: 'Registros de riego; se incluyen al consultar la planta',
+  @ApiPropertyOptional({
     type: 'array',
-    items: {
-      type: 'object',
-      additionalProperties: true,
-    },
-    required: false,
+    items: { type: 'object', additionalProperties: true },
     example: [],
   })
   riegos?: Record<string, unknown>[];

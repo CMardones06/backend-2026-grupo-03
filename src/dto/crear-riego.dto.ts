@@ -1,12 +1,12 @@
 import {
   IsNotEmpty,
   IsInt,
+  IsPositive,
   IsOptional,
   IsString,
-  Min,
   MaxLength,
   IsDateString,
-  IsPositive,
+  Min,
 } from 'class-validator';
 import {
   ApiProperty,
@@ -16,42 +16,39 @@ import {
 
 export class CrearRiegoDto {
   @ApiProperty({
-    description: 'ID de una planta existente que no esté muerta',
+    description: 'Identificador de la planta que fue regada',
     example: 1,
     minimum: 1,
   })
   @IsInt()
-  @IsPositive()
+  @Min(1)
   @IsNotEmpty()
   planta_id: number;
 
   @ApiProperty({
-    description: 'Fecha y hora del riego. No puede ser futura',
-    example: '2026-11-01T12:00:00Z',
-    format: 'date-time',
-  })
-  @IsDateString({}, {
-    message: 'La fecha de riego debe ser una fecha válida',
-  })
-  @IsNotEmpty()
-  fecha_riego: string;
-
-  @ApiProperty({
-    description: 'Cantidad de agua en mililitros; debe ser un entero positivo',
-    example: 250,
+    description: 'Cantidad de agua aplicada en mililitros (ml)',
+    example: 500,
     minimum: 1,
   })
   @IsInt()
-  @IsPositive({
-    message: 'La cantidad en ml debe ser mayor a 0',
-  })
+  @IsPositive({ message: 'La cantidad en ml debe ser un número positivo' })
   @IsNotEmpty()
-  @Min(1)
   cantidad_ml: number;
 
   @ApiPropertyOptional({
-    description: 'Observaciones del riego',
-    example: 'Riego de mantenimiento',
+    description: 'Fecha y hora del riego en formato ISO 8601',
+    example: '2026-11-02T09:00:00Z',
+  })
+  @IsOptional()
+  @IsDateString(
+    {},
+    { message: 'La fecha de riego debe tener un formato ISO válido' },
+  )
+  fecha_riego?: string;
+
+  @ApiPropertyOptional({
+    description: 'Notas u observaciones adicionales sobre el riego',
+    example: 'Riego matutino completo',
     maxLength: 100,
     nullable: true,
   })
@@ -72,61 +69,43 @@ export class RiegoRespuestaDto {
   @ApiProperty({ example: 1 })
   planta_id: number;
 
-  @ApiProperty({
-    description: 'Fecha y hora del riego',
-    example: '2026-11-01T12:00:00.000Z',
-    format: 'date-time',
-  })
-  fecha_riego: string;
+  @ApiProperty({ example: '2026-11-02T09:00:00.000Z' })
+  fecha_riego: Date | string;
 
-  @ApiProperty({ example: 250 })
+  @ApiProperty({ example: 500 })
   cantidad_ml: number;
 
-  @ApiProperty({
-    example: 'Riego de mantenimiento',
+  @ApiPropertyOptional({
+    example: 'Riego matutino completo',
     nullable: true,
-    required: false,
   })
   observaciones?: string | null;
 
-  @ApiProperty({
-    description: 'Planta asociada al riego',
+  @ApiPropertyOptional({
+    description: 'Datos de la planta asociada al riego',
     type: 'object',
+    nullable: true,
     additionalProperties: true,
     example: {
       id: 1,
-      nombre: 'Monstera de la Sala',
+      apodo: 'Monstera de la Sala',
       ubicacion: 'Living',
       estado_salud: 'Excelente',
-      fecha_ingreso: null,
-      especie_id: 1,
-      apodo: 'Mi monstera',
-      fecha_adquisicion: '2026-11-01',
-      usuario_id: 1,
     },
   })
-  planta: Record<string, unknown>;
+  planta?: Record<string, unknown> | null;
 }
 
 export class RiegosPaginadosRespuestaDto {
   @ApiProperty({ type: [RiegoRespuestaDto] })
   data: RiegoRespuestaDto[];
 
-  @ApiProperty({
-    description: 'Cantidad total de registros de riego',
-    example: 2,
-  })
+  @ApiProperty({ example: 2 })
   total: number;
 
-  @ApiProperty({
-    description: 'Página solicitada',
-    example: 1,
-  })
+  @ApiProperty({ example: 1 })
   page: number;
 
-  @ApiProperty({
-    description: 'Última página; el servicio devuelve 1 si no hay registros',
-    example: 1,
-  })
+  @ApiProperty({ example: 1 })
   lastPage: number;
 }

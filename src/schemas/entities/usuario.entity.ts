@@ -15,7 +15,8 @@ export class Usuario {
   @Column({ length: 50 })
   rol: string;
 
-  @Column({ default: true })
+
+  @Column({ type: 'boolean', default: true })
   activo: boolean;
 
   @OneToMany(() => Planta, (planta: Planta) => planta.usuario)

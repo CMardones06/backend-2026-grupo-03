@@ -16,8 +16,8 @@ export class Especie {
   origen: string;
 
   @Column({ type: 'text', nullable: true })
-  descripcion?: string;
-
-  @OneToMany(() => Planta, (planta: Planta) => planta.especie)
+  descripcion: string;
+  
+  @OneToMany(() => Planta, (planta) => planta.especie)
   plantas: Planta[];
 }

@@ -1,12 +1,12 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { AppModule } from '../app.module';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { Especie } from './domain/entities/especie.entity';
-import { Usuario } from './domain/entities/usuario.entity';
-import { Planta } from './domain/entities/planta.entity';
-import { RegistroRiego } from './domain/entities/registro-riego.entity';
+import { Especie } from '../schemas/entities/especie.entity';
+import { Usuario } from '../schemas/entities/usuario.entity';
+import { Planta } from '../schemas/entities/planta.entity';
+import { RegistroRiego } from '../schemas/entities/registro-riego.entity';
 
 async function runSeeder() {
   const app = await NestFactory.createApplicationContext(AppModule);
@@ -56,7 +56,6 @@ async function runSeeder() {
 
   // 4. Crear Plantas (según el esquema de la migración)
   const planta1 = await plantaRepo.save({
-    nombre: 'Monstera de la Sala',
     apodo: 'Mi monstera',
     ubicacion: 'Living',
     estado_salud: 'Excelente',
@@ -66,7 +65,6 @@ async function runSeeder() {
   });
 
   const planta2 = await plantaRepo.save({
-    nombre: 'Mini Suculenta',
     apodo: 'Mi suculenta',
     ubicacion: 'Escritorio',
     estado_salud: 'Saludable',

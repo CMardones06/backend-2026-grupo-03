@@ -1,38 +1,47 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { RegistroRiego } from '../domain/entities/registro-riego.entity';
+import { RegistroRiego } from '../schemas/entities/registro-riego.entity';
 
 @Injectable()
 export class RegistroRiegoRepository {
   constructor(
     @InjectRepository(RegistroRiego)
-    private readonly repository: Repository<RegistroRiego>,
+    private readonly ormRepo: Repository<RegistroRiego>,
   ) {}
 
-  async findAll(): Promise<RegistroRiego[]> {
-    return await this.repository.find({
-      relations: {
-        planta: true,
-      },
+  create(datos: Partial<RegistroRiego>): Promise<RegistroRiego> {
+    const nuevo = this.ormRepo.create(datos);
+    return this.ormRepo.save(nuevo);
+  }
+
+  findAndCountPaginated(
+    skip: number,
+    take: number,
+  ): Promise<[RegistroRiego[], number]> {
+    return this.ormRepo.findAndCount({
+      take,
+      skip,
+      relations: { planta: true },
     });
   }
 
-  async findById(id: number): Promise<RegistroRiego | null> {
-    return await this.repository.findOne({
+  findByIdWithRelations(id: number): Promise<RegistroRiego | null> {
+    return this.ormRepo.findOne({
       where: { id },
-      relations: {
-        planta: true,
-      },
+      relations: { planta: true },
     });
   }
 
-  async save(registro: RegistroRiego): Promise<RegistroRiego> {
-    return await this.repository.save(registro);
+  update(
+    registro: RegistroRiego,
+    cambios: Partial<RegistroRiego>,
+  ): Promise<RegistroRiego> {
+    this.ormRepo.merge(registro, cambios);
+    return this.ormRepo.save(registro);
   }
 
-  async create(datos: Partial<RegistroRiego>): Promise<RegistroRiego> {
-    const nuevoRegistro = this.repository.create(datos);
-    return await this.repository.save(nuevoRegistro);
+  async remove(registro: RegistroRiego): Promise<void> {
+    await this.ormRepo.remove(registro);
   }
 }

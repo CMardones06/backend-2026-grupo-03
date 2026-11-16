@@ -3,25 +3,32 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { RegistroRiego } from '../domain/entities/registro-riego.entity';
-import { Planta } from '../domain/entities/planta.entity';
+import { EstadoSalud } from '../schemas/entities/planta.entity';
 import { CrearRiegoDto } from '../dto/crear-riego.dto';
+import { RegistroRiegoRepository } from '../repositories/registro-riego.repository';
+import { PlantaRepository } from '../repositories/planta.repository';
+import { RegistroRiegoMapper } from '../mappers/registro-riego.mapper';
 
 @Injectable()
 export class RiegosService {
   constructor(
-    @InjectRepository(RegistroRiego)
-    private readonly registroRiegoRepository: Repository<RegistroRiego>,
-    @InjectRepository(Planta)
-    private readonly plantaRepository: Repository<Planta>,
+    private readonly registroRiegoRepository: RegistroRiegoRepository,
+    private readonly plantaRepository: PlantaRepository,
   ) {}
 
-  async crear(crearDto: CrearRiegoDto): Promise<RegistroRiego> {
-    const plantaExiste = await this.plantaRepository.findOne({
-      where: { id: Number(crearDto.planta_id) },
-    });
+  private esPlantaMuerta(estadoSalud?: string): boolean {
+    const estado = String(estadoSalud || '').toUpperCase();
+    return (
+      estadoSalud === EstadoSalud.MUERTA ||
+      estado === 'MUERTA' ||
+      estado === 'MUERTO'
+    );
+  }
+
+  async crear(crearDto: CrearRiegoDto) {
+    const plantaExiste = await this.plantaRepository.findById(
+      Number(crearDto.planta_id),
+    );
 
     if (!plantaExiste) {
       throw new NotFoundException({
@@ -30,11 +37,11 @@ export class RiegosService {
       });
     }
 
-    const estadoSalud = String(plantaExiste.estado_salud || '').toUpperCase();
-    if (estadoSalud === 'MUERTO' || estadoSalud === 'MUERTA') {
+    if (this.esPlantaMuerta(plantaExiste.estado_salud)) {
       throw new BadRequestException({
         code: 'CANNOT_WATER_DEAD_PLANT',
-        message: 'No se puede registrar un riego para una planta en estado muerta',
+        message:
+          'No se puede registrar un riego para una planta en estado muerta',
       });
     }
 
@@ -45,46 +52,41 @@ export class RiegosService {
     if (fechaRiego > new Date()) {
       throw new BadRequestException({
         code: 'INVALID_RIEGO_DATE',
-        message: 'La fecha de riego no puede ser posterior a la fecha y hora actual',
+        message:
+          'La fecha de riego no puede ser posterior a la fecha y hora actual',
       });
     }
 
-    const nuevoRegistro = this.registroRiegoRepository.create({
-      ...crearDto,
+    const creado = await this.registroRiegoRepository.create({
+      planta_id: plantaExiste.id,
       planta: plantaExiste,
-      fecha_riego: fechaRiego as any,
+      cantidad_ml: crearDto.cantidad_ml,
+      observaciones: crearDto.observaciones,
+      fecha_riego: fechaRiego,
     });
 
-    return await this.registroRiegoRepository.save(nuevoRegistro);
+    return RegistroRiegoMapper.toResponse(creado);
   }
 
   async obtenerTodos(page: number = 1, limit: number = 10) {
     const take = Number(limit) || 10;
     const skip = (Number(page) - 1) * take;
 
-    const [data, total] = await this.registroRiegoRepository.findAndCount({
-      take: Number(take),
-      skip: Number(skip),
-      relations: {
-        planta: true,
-      },
-    });
+    const [data, total] =
+      await this.registroRiegoRepository.findAndCountPaginated(skip, take);
 
     return {
-      data,
+      data: data.map((r) => RegistroRiegoMapper.toResponse(r)),
       total,
       page: Number(page),
       lastPage: Math.ceil(total / take) || 1,
     };
   }
 
-  async obtenerPorId(id: number): Promise<RegistroRiego> {
-    const registro = await this.registroRiegoRepository.findOne({
-      where: { id: Number(id) },
-      relations: {
-        planta: true,
-      },
-    });
+  async obtenerPorId(id: number) {
+    const registro = await this.registroRiegoRepository.findByIdWithRelations(
+      Number(id),
+    );
 
     if (!registro) {
       throw new NotFoundException({
@@ -93,19 +95,25 @@ export class RiegosService {
       });
     }
 
-    return registro;
+    return RegistroRiegoMapper.toResponse(registro);
   }
 
-  async actualizar(
-    id: number,
-    actualizarDto: Partial<CrearRiegoDto>,
-  ): Promise<RegistroRiego> {
-    const registro = await this.obtenerPorId(id);
+  async actualizar(id: number, actualizarDto: Partial<CrearRiegoDto>) {
+    const registro = await this.registroRiegoRepository.findByIdWithRelations(
+      Number(id),
+    );
+
+    if (!registro) {
+      throw new NotFoundException({
+        code: 'REGISTRO_RIEGO_NO_ENCONTRADO',
+        message: `No existe un registro de riego con id ${id}`,
+      });
+    }
 
     if (actualizarDto.planta_id !== undefined) {
-      const plantaExiste = await this.plantaRepository.findOne({
-        where: { id: actualizarDto.planta_id },
-      });
+      const plantaExiste = await this.plantaRepository.findById(
+        Number(actualizarDto.planta_id),
+      );
 
       if (!plantaExiste) {
         throw new NotFoundException({
@@ -114,11 +122,7 @@ export class RiegosService {
         });
       }
 
-      const estadoSalud = String(
-        plantaExiste.estado_salud || '',
-      ).toUpperCase();
-
-      if (estadoSalud === 'MUERTO' || estadoSalud === 'MUERTA') {
+      if (this.esPlantaMuerta(plantaExiste.estado_salud)) {
         throw new BadRequestException({
           code: 'CANNOT_WATER_DEAD_PLANT',
           message: 'No se puede asociar el riego a una planta en estado muerta',
@@ -129,23 +133,43 @@ export class RiegosService {
       registro.planta_id = plantaExiste.id;
     }
 
+    let nuevaFecha: Date | undefined;
     if (actualizarDto.fecha_riego !== undefined) {
-      const fechaRiego = new Date(actualizarDto.fecha_riego);
-
-      if (fechaRiego > new Date()) {
+      nuevaFecha = new Date(actualizarDto.fecha_riego);
+      if (nuevaFecha > new Date()) {
         throw new BadRequestException({
           code: 'INVALID_RIEGO_DATE',
-          message: 'La fecha de riego no puede ser posterior a la fecha y hora actual',
+          message:
+            'La fecha de riego no puede ser posterior a la fecha y hora actual',
         });
       }
     }
 
-    this.registroRiegoRepository.merge(registro, actualizarDto as any);
-    return await this.registroRiegoRepository.save(registro);
+    const actualizado = await this.registroRiegoRepository.update(registro, {
+      ...(actualizarDto.cantidad_ml !== undefined && {
+        cantidad_ml: actualizarDto.cantidad_ml,
+      }),
+      ...(actualizarDto.observaciones !== undefined && {
+        observaciones: actualizarDto.observaciones,
+      }),
+      ...(nuevaFecha !== undefined && { fecha_riego: nuevaFecha }),
+    });
+
+    return RegistroRiegoMapper.toResponse(actualizado);
   }
 
   async eliminar(id: number): Promise<{ message: string }> {
-    const registro = await this.obtenerPorId(id);
+    const registro = await this.registroRiegoRepository.findByIdWithRelations(
+      Number(id),
+    );
+
+    if (!registro) {
+      throw new NotFoundException({
+        code: 'REGISTRO_RIEGO_NO_ENCONTRADO',
+        message: `No existe un registro de riego con id ${id}`,
+      });
+    }
+
     await this.registroRiegoRepository.remove(registro);
 
     return {

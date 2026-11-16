@@ -24,7 +24,7 @@ export class Planta {
   id: number;
 
   @Column({ length: 100 })
-  nombre: string;
+  apodo: string;
 
   @Column({ length: 50 })
   ubicacion: string;
@@ -32,14 +32,9 @@ export class Planta {
   @Column({ length: 30, default: EstadoSalud.SALUDABLE })
   estado_salud: string;
 
-  @Column({ type: 'date', nullable: true })
-  fecha_ingreso?: Date;
 
   @Column({ nullable: true })
   especie_id?: number;
-
-  @Column({ nullable: true })
-  apodo?: string;
 
   @Column({ type: 'date', nullable: true })
   fecha_adquisicion?: string;

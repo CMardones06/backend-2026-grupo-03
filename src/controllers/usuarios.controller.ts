@@ -21,13 +21,11 @@ import { UsuariosService } from '../services/usuarios.service';
 import {
   CrearUsuarioDto,
   ActualizarUsuarioDto,
-} from '../dto/crear-usuario.dto';
-import { ConsultarUsuariosDto } from '../dto/consultar-usuarios.dto';
-import {
-  UsuarioRespuestaDto,
   UsuarioDetalleRespuestaDto,
   UsuariosPaginadosRespuestaDto,
-} from '../dto/usuario-respuesta.dto';
+} from '../dto/crear-usuario.dto';
+import { ConsultarUsuariosDto } from '../dto/consultar-usuarios.dto';
+import {UsuarioRespuestaDto} from '../dto/usuario-respuesta.dto';
 import { RespuestaError } from '../http-error.filter';
 
 @ApiTags('Usuarios')
