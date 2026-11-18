@@ -6,10 +6,6 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-<<<<<<< HEAD
-    "seed": "ts-node src/seeders/seed.ts",
-=======
->>>>>>> ad1e37afbe0b6c37843f404f37d403d453f30139
     "build": "nest build",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -19,7 +15,7 @@
     "migration:generate": "npm run typeorm migration:generate src/migrations/InitialSchema",
     "migration:run": "npm run typeorm migration:run",
     "migration:revert": "npm run typeorm migration:revert",
-    "seed": "ts-node src/seed.ts",
+    "seed": "ts-node src/seeders/seed.ts",
     "deploy": "nest deploy",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "oxlint src/ test/",

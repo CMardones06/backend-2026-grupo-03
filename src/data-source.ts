@@ -1,8 +1,8 @@
 import { DataSource } from 'typeorm';
-import { Especie } from './domain/entities/especie.entity';
-import { Planta } from './domain/entities/planta.entity';
-import { RegistroRiego } from './domain/entities/registro-riego.entity';
-import { Usuario } from './domain/entities/usuario.entity';
+import { Especie } from './schemas/entities/especie.entity';
+import { Planta } from './schemas/entities/planta.entity';
+import { RegistroRiego } from './schemas/entities/registro-riego.entity';
+import { Usuario } from './schemas/entities/usuario.entity';
 
 export const AppDataSource = new DataSource({
   type: 'sqlite',
