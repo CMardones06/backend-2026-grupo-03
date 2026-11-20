@@ -1,0 +1,28 @@
+﻿=== 1. REGISTRO CREADO ANTES DEL REINICIO ===
+{
+    "id":  1,
+    "nombre_comun":  "Calathea Orbifolia",
+    "nombre_cientifico":  "Goeppertia orbifolia",
+    "origen":  "Bolivia",
+    "descripcion":  "Planta de interior con hojas rayadas"
+}
+
+=== 2. SERVIDOR DETENIDO Y REINICIADO SIN EJECUTAR SEEDER ===
+=== 3. CONSULTA GET /especies TRAS REINICIO ===
+{
+    "data":  [
+                 {
+                     "id":  1,
+                     "nombre_comun":  "Calathea Orbifolia",
+                     "nombre_cientifico":  "Goeppertia orbifolia",
+                     "origen":  "Bolivia",
+                     "descripcion":  "Planta de interior con hojas rayadas",
+                     "plantas":  [
+
+                                 ]
+                 }
+             ],
+    "total":  1,
+    "page":  1,
+    "lastPage":  1
+}
