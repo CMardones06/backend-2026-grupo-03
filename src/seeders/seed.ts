@@ -1,12 +1,15 @@
-import { NestFactory } from '@nestjs/core';
+﻿import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../app.module';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 
 import { Especie } from '../schemas/entities/especie.entity';
 import { Usuario } from '../schemas/entities/usuario.entity';
 import { Planta } from '../schemas/entities/planta.entity';
 import { RegistroRiego } from '../schemas/entities/registro-riego.entity';
+import { RefreshToken } from '../schemas/entities/refresh-token.entity';
+import { PasswordResetToken } from '../schemas/entities/password-reset-token.entity';
 
 async function runSeeder() {
   const app = await NestFactory.createApplicationContext(AppModule);
@@ -15,46 +18,58 @@ async function runSeeder() {
   const usuarioRepo = app.get<Repository<Usuario>>(getRepositoryToken(Usuario));
   const plantaRepo = app.get<Repository<Planta>>(getRepositoryToken(Planta));
   const riegoRepo = app.get<Repository<RegistroRiego>>(getRepositoryToken(RegistroRiego));
+  const refreshRepo = app.get<Repository<RefreshToken>>(getRepositoryToken(RefreshToken));
+  const resetRepo = app.get<Repository<PasswordResetToken>>(getRepositoryToken(PasswordResetToken));
 
-  console.log('🌱 Ejecutando Seeder...');
+  console.log('Ejecutando Seeder...');
 
-  // 1. Limpiar datos previos
+  // 1. Limpiar datos previos respetando integridad referencial
+  await resetRepo.clear();
+  await refreshRepo.clear();
   await riegoRepo.clear();
   await plantaRepo.clear();
   await especieRepo.clear();
   await usuarioRepo.clear();
 
-  // 2. Crear Usuarios (coincidiendo con las columnas reales de la tabla usuarios)
+  // 2. Generar hashes seguros (mínimo 12 caracteres)
+  const adminPasswordHash = await bcrypt.hash('AdminRiego2026!', 10);
+  const userPasswordHash = await bcrypt.hash('UsuarioRiego2026!', 10);
+
+  // 3. Crear Usuarios
   const usuario1 = await usuarioRepo.save({
     nombre: 'Maria Paz',
     email: 'maria@example.com',
+    password_hash: adminPasswordHash,
     rol: 'admin',
     activo: true,
-  } as any);
+    token_version: 1,
+  });
 
   const usuario2 = await usuarioRepo.save({
-    nombre: 'Juan Pérez',
+    nombre: 'Juan Perez',
     email: 'juan@example.com',
+    password_hash: userPasswordHash,
     rol: 'user',
     activo: true,
-  } as any);
+    token_version: 1,
+  });
 
-  // 3. Crear Especies
+  // 4. Crear Especies
   const especie1 = await especieRepo.save({
     nombre_comun: 'Monstera',
     nombre_cientifico: 'Monstera deliciosa',
-    origen: 'América Tropical',
+    origen: 'America Tropical',
     descripcion: 'Planta de hojas grandes y caladas',
-  } as any);
+  });
 
   const especie2 = await especieRepo.save({
     nombre_comun: 'Suculenta',
     nombre_cientifico: 'Echeveria elegans',
-    origen: 'México',
+    origen: 'Mexico',
     descripcion: 'Planta crasa muy resistente',
-  } as any);
+  });
 
-  // 4. Crear Plantas (según el esquema de la migración)
+  // 5. Crear Plantas
   const planta1 = await plantaRepo.save({
     apodo: 'Mi monstera',
     ubicacion: 'Living',
@@ -72,20 +87,22 @@ async function runSeeder() {
     especie_id: especie2.id,
     usuario_id: usuario2.id,
   });
-  // 5. Crear Registros de Riego
+
+  // 6. Crear Registros de Riego
   await riegoRepo.save({
     planta_id: planta1.id,
     cantidad_ml: 500,
     observaciones: 'Riego matutino completo',
-  } as any);
+  });
 
   await riegoRepo.save({
     planta_id: planta2.id,
     cantidad_ml: 100,
     observaciones: 'Riego ligero de mantenimiento',
-  } as any);
+  });
 
-  console.log('✅ ¡Seeder ejecutado con éxito! Registros iniciales insertados.');
+  console.log('Seeder ejecutado con exito.');
+  console.log('Credenciales iniciales -> Admin: maria@example.com / AdminRiego2026! | User: juan@example.com / UsuarioRiego2026!');
   await app.close();
 }
 
