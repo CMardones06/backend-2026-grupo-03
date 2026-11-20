@@ -22,6 +22,8 @@ import { EspecieRepository } from './repositories/especie.repository';
 import { PlantaRepository } from './repositories/planta.repository';
 import { RegistroRiegoRepository } from './repositories/registro-riego.repository';
 import { UsuarioRepository } from './repositories/usuario.repository';
+import { RefreshTokenRepository } from './repositories/refresh-token.repository';
+import { PasswordResetTokenRepository } from './repositories/password-reset-token.repository';
 import { InitialSchema1793567794476 } from './migrations/1793567794476-InitialSchema';
 import { AddAuthAndTokens1793567800000 } from './migrations/1793567800000-AddAuthAndTokens';
 
@@ -66,6 +68,13 @@ import { AddAuthAndTokens1793567800000 } from './migrations/1793567800000-AddAut
     PlantaRepository,
     RegistroRiegoRepository,
     UsuarioRepository,
+    RefreshTokenRepository,
+    PasswordResetTokenRepository,
+  ],
+  exports: [
+    UsuarioRepository,
+    RefreshTokenRepository,
+    PasswordResetTokenRepository,
   ],
 })
 export class AppModule {}

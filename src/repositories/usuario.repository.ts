@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+﻿import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsOrder } from 'typeorm';
 import { Usuario } from '../schemas/entities/usuario.entity';
 
 type DatosUsuario = Pick<Usuario, 'nombre' | 'email' | 'rol'> & {
   activo?: boolean;
+  password_hash?: string;
+  token_version?: number;
 };
 
 type ConsultaUsuarios = {
@@ -53,13 +55,15 @@ export class UsuarioRepository {
   }
 
   findByEmail(email: string): Promise<Usuario | null> {
-    return this.repository.findOneBy({ email });
+    return this.repository.findOneBy({ email: email.trim().toLowerCase() });
   }
 
   create(datos: DatosUsuario): Promise<Usuario> {
     const usuario = this.repository.create({
       ...datos,
+      email: datos.email.trim().toLowerCase(),
       activo: datos.activo ?? true,
+      token_version: datos.token_version ?? 1,
     });
     return this.repository.save(usuario);
   }
@@ -67,6 +71,21 @@ export class UsuarioRepository {
   update(usuario: Usuario, datos: Partial<DatosUsuario>): Promise<Usuario> {
     this.repository.merge(usuario, datos);
     return this.repository.save(usuario);
+  }
+
+  async incrementTokenVersion(usuarioId: number): Promise<void> {
+    await this.repository.increment({ id: usuarioId }, 'token_version', 1);
+  }
+
+  async updatePasswordAndInvalidateSessions(
+    usuarioId: number,
+    newPasswordHash: string,
+  ): Promise<void> {
+    const usuario = await this.findById(usuarioId);
+    if (!usuario) return;
+    usuario.password_hash = newPasswordHash;
+    usuario.token_version = (usuario.token_version ?? 1) + 1;
+    await this.repository.save(usuario);
   }
 
   async remove(usuario: Usuario): Promise<void> {
